@@ -10,11 +10,7 @@ import AboutSection from './sections/AboutSection';
 import ContactSection from './sections/ContactSection';
 import OpenJobsSection from './sections/OpenJobSection';
 import ActivitySection from './sections/ActivitySection'; 
-import { getInitials } from '@/lib/utils';
-import { User, Job } from '@/types'; // Import main types
-
-// --- CHANGE 1: REMOVE the local RecruiterProfileData and Job interfaces ---
-// We will use the main User and Job types from `src/types` directly.
+import { User, Job } from '@/types';
 
 const TABS = ['Timeline', 'Open Jobs', 'About', 'Contact'];
 
@@ -24,7 +20,6 @@ interface ProfileViewProps {
 }
 
 export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
-  // --- CHANGE 2: The state will now hold a User object and a separate jobs array ---
   const [profile, setProfile] = useState<User | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,18 +28,21 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
 
   useEffect(() => {
     const fetchProfile = async () => {
+      setIsLoading(true);
+      setError('');
       try {
+        // If a userId is provided, fetch that public profile. Otherwise, fetch the logged-in user's profile.
         const rawUserData: User = userId ? await getUserProfileById(userId) : await getMyProfile();
         
-        // --- CHANGE 3: Await the promise for jobs ---
-        // For a public view, you'll need a way to get jobs by recruiter ID.
-        // For now, this logic works for the owner's view.
+        // Fetch jobs only if the profile owner is the one viewing.
+        // For a public view, you might need a different endpoint like `getJobsByRecruiterId(userId)`.
         const recruiterJobs: Job[] = isOwner ? await getRecruiterJobs() : [];
         
         if (rawUserData && rawUserData.role === 'recruiter') {
           setProfile(rawUserData);
           setJobs(recruiterJobs);
         } else {
+          // This handles cases where a non-recruiter ID might be passed.
           throw new Error('Recruiter profile data could not be found.');
         }
       } catch (err) {
@@ -78,8 +76,7 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
     return <div className="alert alert-error m-8">{error || 'Profile could not be loaded.'}</div>;
   }
 
-  // --- CHANGE 4: Create a display object from the `profile` state for easier access ---
-  const rp = profile.recruiterProfile; // Alias for recruiterProfile
+  const rp = profile.recruiterProfile;
   const name = `${profile.firstName || ''} ${profile.lastName || ''}`.trim();
 
   return (
@@ -87,7 +84,7 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
       <header className="relative h-60 md:h-80 w-full bg-gray-200">
         <ImageUpload
           imageType="coverPhoto"
-          currentImageUrl={rp?.coverPhoto} // Use the coverPhoto from the profile
+          currentImageUrl={rp?.coverPhoto}
           onUploadSuccess={(newPath) => handleUploadSuccess('coverPhoto', newPath)}
           className="w-full h-full"
           disabled={!isOwner}
@@ -101,7 +98,7 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
               <div className="flex flex-col items-center lg:items-start text-center lg:text-left">
                 <ImageUpload
                   imageType="profilePicture"
-                  currentImageUrl={rp?.profilePicture} // Use profilePicture
+                  currentImageUrl={rp?.profilePicture}
                   onUploadSuccess={(newPath) => handleUploadSuccess('profilePicture', newPath)}
                   isProfilePic={true}
                   className="w-40 h-40 -mt-5" 
@@ -162,7 +159,10 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
               ))}
             </div>
             <div className="mt-6">
+              {/* --- THIS IS THE FIX --- */}
+              {/* Pass the `isOwner` prop down to the ActivitySection component. */}
               {activeTab === 'Timeline' && <ActivitySection userId={profile.id} isOwner={isOwner} />}
+              
               {activeTab === 'About' && <AboutSection aboutText={rp?.about || ''} />}
               {activeTab === 'Contact' && <ContactSection email={profile.email} phone={profile.phone || ''} website={rp?.website || ''} />}
               {activeTab === 'Open Jobs' && <OpenJobsSection jobs={jobs} />}
