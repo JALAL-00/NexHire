@@ -1,16 +1,10 @@
-// src/app/Candidate Dashboard/profile/page.tsx
+'use client'; // This page should be a client component to handle profile logic
 
-import type { Metadata } from 'next';
-import ProfileView from '@/components/Recruiter-Profile/ProfileView'; // Import the client component
+import ProfileView from '@/components/Recruiter-Profile/ProfileView';
 
-// This is a Server Component, so we can export metadata here.
-export const metadata: Metadata = {
-  title: 'Recruiter Profile | Profile', // This sets the browser tab title
-  description: 'View and manage your professional profile.',
-};
+// This is a client-side page for the logged-in recruiter's own profile.
+export default function MyRecruiterProfilePage() {
+  
 
-// This page now just renders our interactive client component.
-export default function ProfilePage() {
-  return <ProfileView isOwner={false} />;
+  return <ProfileView isOwner={true} />;
 }
-
