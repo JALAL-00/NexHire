@@ -43,9 +43,5 @@ Beyond a traditional job board, NexHire integrates advanced features like **AI-p
   - Web Scraping: Cheerio, Puppeteer
 
 
-##  License
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-
 ##  Contact
 For inquiries, reach out via [jalaluddin0046356@gmail.com](mailto:jalaluddin0046356.com) 
