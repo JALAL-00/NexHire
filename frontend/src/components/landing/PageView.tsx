@@ -25,10 +25,12 @@ export default function LandingPage() {
                 <Search className="text-gray-400" />
                 <input type="text" placeholder="Search for jobs" className="w-full outline-none text-gray-800" />
               </div>
+              {/* 
               <div className="flex items-center gap-2 px-4 py-3 flex-1 border-b md:border-b-0 md:border-r">
                 <MapPin className="text-gray-400 w-5 h-5" />
                 <input type="text" placeholder="Location" className="w-full outline-none text-gray-800" />
               </div>
+              */}
               <button className="bg-primary hover:bg-primary-focus text-white px-6 py-3 md:rounded-r-full w-full md:w-auto">
                 Search
               </button>
