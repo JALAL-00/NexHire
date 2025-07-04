@@ -50,7 +50,7 @@ export const ChatWindow = ({ activeConversation, messages, currentUserId, onSend
           </div>
           <div>
             <p className="font-bold">{otherParticipant?.firstName} {otherParticipant?.lastName}</p>
-            <p className="text-xs text-gray-500">24 members</p>
+            
           </div>
         </div>
         <div className="flex items-center gap-2">
