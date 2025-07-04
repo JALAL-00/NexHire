@@ -8,28 +8,51 @@ var __decorate = (this && this.__decorate) || function (decorators, target, key,
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.LinkedinStrategy = void 0;
 const common_1 = require("@nestjs/common");
-const puppeteer = require("puppeteer");
+const puppeteer_extra_1 = require("puppeteer-extra");
+const StealthPlugin = require("puppeteer-extra-plugin-stealth");
+puppeteer_extra_1.default.use(StealthPlugin());
 let LinkedinStrategy = class LinkedinStrategy {
     async scrape(params) {
-        const browser = await puppeteer.launch({ headless: true });
-        const page = await browser.newPage();
-        const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(params.searchTerm)}${params.location ? `&location=${encodeURIComponent(params.location)}` : ''}`;
-        await page.goto(url, { waitUntil: 'networkidle2' });
-        const jobs = await page.evaluate((limit) => {
-            const jobElements = Array.from(document.querySelectorAll('.jobs-search__results-list li'));
-            return jobElements.slice(0, limit).map((el) => {
-                return {
-                    title: el.querySelector('.base-search-card__title')?.textContent?.trim() || '',
-                    company: el.querySelector('.base-search-card__subtitle')?.textContent?.trim() || '',
-                    location: el.querySelector('.job-search-card__location')?.textContent?.trim() || '',
-                    description: '',
-                    url: el.querySelector('.base-card__full-link')?.href || '',
-                    source: 'linkedin',
-                };
+        let browser = null;
+        try {
+            browser = await puppeteer_extra_1.default.launch({
+                headless: true,
+                executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+                args: [
+                    '--no-sandbox',
+                    '--disable-setuid-sandbox',
+                ],
             });
-        }, params.limit);
-        await browser.close();
-        return jobs;
+            const page = await browser.newPage();
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
+            const url = `https://www.linkedin.com/jobs/search/?keywords=${encodeURIComponent(params.searchTerm)}${params.location ? `&location=${encodeURIComponent(params.location)}` : ''}`;
+            await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+            await new Promise(resolve => setTimeout(resolve, Math.random() * 2000 + 1000));
+            await page.waitForSelector('ul.jobs-search__results-list', { timeout: 10000 });
+            const jobs = await page.evaluate((limit) => {
+                const jobListContainer = document.querySelector('ul.jobs-search__results-list');
+                if (!jobListContainer)
+                    return [];
+                const jobElements = Array.from(jobListContainer.querySelectorAll('li'));
+                return jobElements.slice(0, limit).map((el) => {
+                    const title = el.querySelector('.base-search-card__title')?.textContent?.trim() || '';
+                    const company = el.querySelector('.base-search-card__subtitle')?.textContent?.trim() || '';
+                    const location = el.querySelector('.job-search-card__location')?.textContent?.trim() || '';
+                    const url = el.querySelector('a.base-card__full-link')?.href || '';
+                    return { title, company, location, description: '', url, source: 'linkedin' };
+                });
+            }, params.limit || 10);
+            return jobs.filter(job => job.title && job.url);
+        }
+        catch (error) {
+            console.error('An error occurred during LinkedIn scraping:', error);
+            return [];
+        }
+        finally {
+            if (browser) {
+                await browser.close();
+            }
+        }
     }
 };
 exports.LinkedinStrategy = LinkedinStrategy;
