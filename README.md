@@ -1,4 +1,4 @@
-# NexHire - The Next-Generation Job Portal
+# NexHire : The Next Generation Job Portal
 
 NexHire is a modern, full-stack recruitment platform designed to streamline the hiring process for both candidates and recruiters. Built with a powerful tech stack featuring **Next.js** for the frontend and **NestJS** for the backend, it delivers a seamless and interactive user experience.
 
