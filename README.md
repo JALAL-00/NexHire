@@ -31,17 +31,6 @@ Beyond a traditional job board, NexHire integrates advanced features like **AI-p
   - **For Recruiters**: Assistance with job descriptions, interview questions, and candidate profile summaries.
   - **For Candidates**: Help with resume writing, cover letters, and career advice.
 
-## Tech Stack
-- **Frontend**: Next.js (React), TypeScript, Tailwind CSS, DaisyUI
-- **Backend**: NestJS (Node.js), TypeScript, TypeORM
-- **Database**: PostgreSQL
-- **Real-time Communication**: Socket.IO
-- **Authentication**: JWT (JSON Web Tokens)
-- **Third-Party Integrations**:
-  - Payments: Stripe API
-  - AI Services: Gemini API
-  - Web Scraping: Cheerio, Puppeteer
-
 # Screenshoots
 
 **Landing Page:**
@@ -146,6 +135,16 @@ Beyond a traditional job board, NexHire integrates advanced features like **AI-p
 **Login:**
 <img width="1044" alt="Image" src="https://github.com/user-attachments/assets/86217a79-e95c-4902-bf98-c9f16c93329e" />
 
+## Tech Stack
+- **Frontend**: Next.js (React), TypeScript, Tailwind CSS, DaisyUI
+- **Backend**: NestJS (Node.js), TypeScript, TypeORM
+- **Database**: PostgreSQL
+- **Real-time Communication**: Socket.IO
+- **Authentication**: JWT (JSON Web Tokens)
+- **Third-Party Integrations**:
+  - Payments: Stripe API
+  - AI Services: Gemini API
+  - Web Scraping: Cheerio, Puppeteer
 
 ##  Contact
 For inquiries, reach out via [jalaluddin0046356@gmail.com](mailto:jalaluddin0046356.com) 
