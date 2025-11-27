@@ -107,17 +107,15 @@ export class AuthService {
   }
 
 async getProfile(userId: number): Promise<any> {
-    // --- THIS IS THE FIX (Part 2) ---
-    // We add 'applications' and 'applications.job' to the relations.
-    // This will attach the user's application history to the user object.
+
     let user = await this.userRepository.findOne({
       where: { id: userId },
       relations: [
         'candidateProfile', 
         'recruiterProfile', 
-        'candidateProfile.savedJobs', // Keep existing relations
-        'applications',               // Add this
-        'applications.job'            // And this, to get the job ID in the application object
+        'candidateProfile.savedJobs', 
+        'applications',              
+        'applications.job'            
       ], 
     });
 
@@ -126,7 +124,7 @@ async getProfile(userId: number): Promise<any> {
     }
     
     if (user.role === UserRole.CANDIDATE && !user.candidateProfile) {
-      // If profile doesn't exist, create it (this logic is good)
+      
       const newProfile = this.candidateProfileRepository.create({ user, experience: [], education: [], savedJobs: [] });
       await this.candidateProfileRepository.save(newProfile);
       user.candidateProfile = newProfile; 
@@ -180,24 +178,23 @@ async handleGoogleAuth(profile: { email: string; firstName: string; lastName: st
     const existingUser = await this.userRepository.findOne({ where: { email } });
 
     if (action === 'login') {
-      // If the intent is to log in, the user MUST exist.
+      
       if (!existingUser) {
         throw new BadRequestException('Account not found. Please register first.');
       }
-      // If they exist, log them in.
+      
       const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
       const token = this.jwtService.sign(jwtPayload);
       return { user: existingUser, token };
-    } else { // action === 'register'
-      // If the intent is to register but the user already exists, just log them in.
-      // This prevents errors and provides a smooth user experience.
+    } else { 
+      
       if (existingUser) {
         const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
         const token = this.jwtService.sign(jwtPayload);
         return { user: existingUser, token };
       }
 
-      // If they don't exist, create a new account.
+      
       const newUser = this.userRepository.create({
         email,
         firstName,

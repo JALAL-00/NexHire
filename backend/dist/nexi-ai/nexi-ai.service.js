@@ -24,7 +24,7 @@ var AiTool;
 let AiService = class AiService {
     configService;
     genAI;
-    modelName = 'gemini-1.5-flash-latest';
+    modelName = 'gemini-2.5-flash';
     constructor(configService) {
         this.configService = configService;
         const apiKey = this.configService.get('GOOGLE_API_KEY');
@@ -40,7 +40,7 @@ let AiService = class AiService {
       User request: "${userInput}"
       Return only the category name, without any other text or formatting.
     `;
-        const tool = await this.classifyIntent(classificationPrompt);
+        const tool = await this.classifyIntent(classificationPrompt).catch(() => AiTool.GeneralChat);
         let response = '';
         switch (tool) {
             case AiTool.CoverLetter:

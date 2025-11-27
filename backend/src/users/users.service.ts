@@ -1,5 +1,5 @@
 // backend/src/users/users.service.ts
-// --- FIX: Add 'NotFoundException' to this import ---
+
 import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,7 +12,6 @@ export class UsersService {
     private userRepository: Repository<User>,
   ) {}
 
-  // ... (findRecommendations and findAllCandidates methods remain the same) ...
   async findRecommendations(limit: number, currentUserId?: number): Promise<User[]> {
     try {
       const queryBuilder = this.userRepository.createQueryBuilder('user')

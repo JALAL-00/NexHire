@@ -49,9 +49,6 @@ export default function ProfileView({ userId, isOwner }: ProfileViewProps) {
       }
     };
 
-    // --- THIS IS THE FIX ---
-    // The call to fetchProfileData() must be inside the useEffect hook's body.
-    // The extra call outside of it has been removed.
     fetchProfileData();
 
   }, [userId]);

@@ -4,5 +4,5 @@ export declare class RegisterDto {
     firstName?: string;
     lastName?: string;
     companyName?: string;
-    role: import("/Users/jalalsmac/NexHire/backend/src/auth/entities/user.entity").UserRole;
+    role: import("src/auth/entities/user.entity").UserRole;
 }

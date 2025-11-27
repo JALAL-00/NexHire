@@ -12,12 +12,12 @@ export enum AiTool {
 }
 
 @Injectable()
-export class AiService { // Renamed from NexiAiService to match file
+export class AiService {
   private genAI: GoogleGenerativeAI;
-  private modelName = 'gemini-1.5-flash-latest';
+  // --- SOLUTION: Use the standard, most stable model guaranteed to work with a free AI Studio key ---
+  private modelName = 'gemini-2.5-flash';
 
   constructor(private configService: ConfigService) {
-    // --- FIX: Add a check to ensure the API key is loaded on startup ---
     const apiKey = this.configService.get<string>('GOOGLE_API_KEY');
     if (!apiKey) {
       throw new Error('FATAL_ERROR: GOOGLE_API_KEY is not set in the environment variables.');
@@ -33,7 +33,7 @@ export class AiService { // Renamed from NexiAiService to match file
       Return only the category name, without any other text or formatting.
     `;
     
-    const tool = await this.classifyIntent(classificationPrompt);
+    const tool = await this.classifyIntent(classificationPrompt).catch(() => AiTool.GeneralChat);
     let response = '';
 
     switch (tool) {
@@ -61,8 +61,7 @@ export class AiService { // Renamed from NexiAiService to match file
       return AiTool.GeneralChat;
     } catch (error) {
       console.error('Intent classification failed:', error);
-      // Return a default value but the main error will be caught in the calling function
-      return AiTool.GeneralChat;
+      return AiTool.GeneralChat; // Default on error
     }
   }
 
@@ -76,7 +75,6 @@ export class AiService { // Renamed from NexiAiService to match file
       return result.response.text();
     } catch (error) {
       console.error('AI tool generation failed:', error);
-      // --- FIX: Throw a proper NestJS exception that sends a 500 error to the frontend ---
       throw new InternalServerErrorException('Failed to get a response from the AI. The API key may be invalid or the service may be down.');
     }
   }
