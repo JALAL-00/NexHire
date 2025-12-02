@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import { io, Socket } from 'socket.io-client';
 import Cookies from 'js-cookie';
 import { getChatUsers, getOrCreateConversation, getMessageHistory } from '@/lib/api';
@@ -11,7 +11,7 @@ import { ChatWindow } from '@/components/chat/ChatWindow';
 import { ConversationDetails } from '@/components/chat/ConversationDetails';
 import { Conversation, Message, ChatUser, MessageType } from '@/types/chat';
 
-export default function MessagesPage() {
+function MessagesContent() {
   const [users, setUsers] = useState<ChatUser[]>([]);
   const [activeConversation, setActiveConversation] = useState<Conversation | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -81,9 +81,9 @@ export default function MessagesPage() {
       setMessages([]);
       return;
     }
-    
+
     // --- FIX: Wait for the socket to be connected before proceeding ---
-    if (!socketRef.current) return; 
+    if (!socketRef.current) return;
 
     const loadConversation = async () => {
       try {
@@ -94,18 +94,18 @@ export default function MessagesPage() {
         setMessages(history);
 
         // A better way to get conversation details from the user list
-        const otherParticipantId = history[0]?.sender.id !== currentUserId 
-            ? history[0]?.sender.id 
-            : history.find(m => m.sender.id !== currentUserId)?.sender.id;
-        
+        const otherParticipantId = history[0]?.sender.id !== currentUserId
+          ? history[0]?.sender.id
+          : history.find(m => m.sender.id !== currentUserId)?.sender.id;
+
         if (otherParticipantId) {
-            const convo = await getOrCreateConversation(otherParticipantId);
-            setActiveConversation(convo);
+          const convo = await getOrCreateConversation(otherParticipantId);
+          setActiveConversation(convo);
         }
 
       } catch (error) {
         console.error("Failed to load conversation history:", error);
-        router.push('/messages'); 
+        router.push('/messages');
       }
     };
 
@@ -142,5 +142,17 @@ export default function MessagesPage() {
         activeConversation={activeConversation}
       />
     </div>
+  );
+}
+
+export default function MessagesPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen w-full bg-white">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    }>
+      <MessagesContent />
+    </Suspense>
   );
 }

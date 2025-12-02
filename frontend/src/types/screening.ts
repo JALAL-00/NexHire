@@ -1,4 +1,3 @@
-// For the results of the screening
 export interface ScreeningResult {
   candidateId: number;
   candidateEmail: string;
@@ -6,7 +5,6 @@ export interface ScreeningResult {
   matchedKeywords: string[];
 }
 
-// For the job selection dropdown
 export interface SimpleJob {
   id: number;
   title: string;

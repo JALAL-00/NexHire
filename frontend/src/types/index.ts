@@ -72,8 +72,6 @@ export interface Job {
   education?: string;
   jobType?: string; 
   jobLevel?: string;
-  // --- FIX 1: Make the status property non-optional ---
-  // This resolves the error in `OpenJobsSection.tsx`.
   status: 'Active' | 'Expired'; 
   createdAt?: string; 
   expirationDate?: string; 
@@ -87,8 +85,6 @@ export interface User {
   firstName: string;
   lastName: string;
   role: 'candidate' | 'recruiter';
-  
-  // --- FIX 2: Add the missing top-level phone property ---
   phone?: string | null;
 
   candidateProfile?: {
@@ -106,8 +102,6 @@ export interface User {
     savedJobs?: { id: number; title: string }[];
   };
 
-  // --- FIX 3: Use the detailed `RecruiterProfile` interface here ---
-  // Instead of an inline definition, this now correctly references the detailed interface above.
   recruiterProfile?: RecruiterProfile;
 
   applications?: {

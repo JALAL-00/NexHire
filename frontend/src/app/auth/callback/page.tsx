@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
@@ -11,7 +11,7 @@ interface DecodedToken {
   email: string;
 }
 
-export default function AuthCallbackPage() {
+function AuthCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -25,10 +25,10 @@ export default function AuthCallbackPage() {
 
         // Decode the token to determine the user's role for redirection
         const decodedToken = jwtDecode<DecodedToken>(token);
-        
+
         // Determine the correct dashboard URL
-        const dashboardUrl = decodedToken.role === 'recruiter' 
-          ? '/recruiter-dashboard' 
+        const dashboardUrl = decodedToken.role === 'recruiter'
+          ? '/recruiter-dashboard'
           : '/candidate-dashboard';
 
         // Redirect to the appropriate dashboard, replacing the callback URL in history
@@ -46,7 +46,6 @@ export default function AuthCallbackPage() {
     }
   }, [router, searchParams]);
 
-  // Render a loading state while the effect runs
   return (
     <div className="flex items-center justify-center min-h-screen bg-base-200">
       <div className="text-center">
@@ -54,5 +53,20 @@ export default function AuthCallbackPage() {
         <p className="mt-4 text-lg">Authenticating, please wait...</p>
       </div>
     </div>
+  );
+}
+
+export default function AuthCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-base-200">
+        <div className="text-center">
+          <span className="loading loading-spinner loading-lg"></span>
+          <p className="mt-4 text-lg">Loading...</p>
+        </div>
+      </div>
+    }>
+      <AuthCallbackContent />
+    </Suspense>
   );
 }
