@@ -1,1 +1,15 @@
+# Dependencies
+/node_modules
+
+# Build files
+/frontend/dist
+/backend/uploads
+
+# Environment Variables
+/backend/.env
+/frontend/.env.local
+
+# OS files
+.DS_Store
+
 .env
