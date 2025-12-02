@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { getMyProfile, updateMyUserInfo, UpdateUserInfoPayload } from '@/lib/api';
@@ -11,7 +11,7 @@ import ExperienceForm from '@/components/candidate-settings/ExperienceForm';
 import EducationForm from '@/components/candidate-settings/EducationForm';
 import SkillsForm from '@/components/candidate-settings/SkillsForm';
 
-export default function CandidateSettingsPage() {
+function CandidateSettingsContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [activeSection, setActiveSection] = useState('basic');
@@ -30,8 +30,8 @@ export default function CandidateSettingsPage() {
     profilePicture: null,
     experience: [],
     education: [],
-    skills: [], 
-    availability: '', 
+    skills: [],
+    availability: '',
   });
 
   useEffect(() => {
@@ -40,7 +40,7 @@ export default function CandidateSettingsPage() {
     if (sectionFromUrl && ['basic', 'about', 'services', 'experience', 'education', 'skills', 'availability'].includes(sectionFromUrl)) {
       setActiveSection(sectionFromUrl);
     }
-    
+
     const fetchProfileData = async () => {
       try {
         const data = await getMyProfile();
@@ -108,7 +108,7 @@ export default function CandidateSettingsPage() {
     const nonEmptyEducation = (formData.education ?? []).filter(
       (edu) => edu.institution?.trim() !== '' || edu.degree?.trim() !== ''
     );
-    
+
     // --- ADD 'services' TO THE SUBMISSION PAYLOAD ---
     const payload: UpdateUserInfoPayload = {
       firstName: formData.firstName,
@@ -174,10 +174,10 @@ export default function CandidateSettingsPage() {
               <label className="label">
                 <span className="label-text">Current Status</span>
               </label>
-              <select 
-                name="availability" 
-                className="select select-bordered" 
-                value={formData.availability} 
+              <select
+                name="availability"
+                className="select select-bordered"
+                value={formData.availability}
                 onChange={handleInputChange}
               >
                 <option>Available Immediately</option>
@@ -230,5 +230,17 @@ export default function CandidateSettingsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function CandidateSettingsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <span className="loading loading-spinner loading-lg"></span>
+      </div>
+    }>
+      <CandidateSettingsContent />
+    </Suspense>
   );
 }
