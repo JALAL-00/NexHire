@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import axios from 'axios';
 
-export default function ResetPasswordPage() {
+function ResetPasswordForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get('email');
@@ -16,7 +16,7 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const API_URL = 'http://localhost:3000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
 
     try {
       await axios.post(`${API_URL}/auth/reset-password`, payload);
-      
+
       alert('Password has been reset successfully! Please log in.');
       router.push('/login'); // Redirect to login page on success
 
@@ -56,69 +56,77 @@ export default function ResetPasswordPage() {
   };
 
   return (
+    <div className="card w-full max-w-md shadow-2xl bg-base-100">
+      <form className="card-body gap-4" onSubmit={handleSubmit}>
+        <h2 className="card-title text-2xl font-bold mx-auto">Reset Your Password</h2>
+
+        <p className="text-center text-sm text-gray-500">
+          A verification code has been sent to <span className="font-medium">{email || 'your email'}</span>.
+        </p>
+
+        {error && <div className="alert alert-error text-sm p-2"><span>{error}</span></div>}
+
+        {/* OTP/Token Input */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">Verification Code</span></label>
+          <input
+            type="text"
+            placeholder="Enter the 6-digit code"
+            className="input input-bordered"
+            required
+            value={token}
+            onChange={(e) => setToken(e.target.value)}
+            maxLength={6}
+          />
+        </div>
+
+        {/* New Password Input */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">New Password</span></label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="input input-bordered"
+            required
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </div>
+
+        {/* Confirm New Password Input */}
+        <div className="form-control">
+          <label className="label"><span className="label-text">Confirm New Password</span></label>
+          <input
+            type="password"
+            placeholder="••••••••"
+            className="input input-bordered"
+            required
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+          />
+        </div>
+
+        <div className="form-control mt-2">
+          <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
+            {loading ? <span className="loading loading-spinner"></span> : 'Reset Password'}
+          </button>
+        </div>
+
+        <p className="text-center mt-2 text-sm">
+          Didn't get a code?{' '}
+          <Link href="/forgot-password" className="link link-primary">Resend</Link>
+        </p>
+      </form>
+    </div>
+  );
+}
+
+export default function ResetPasswordPage() {
+  return (
     <div className="min-h-screen bg-base-200 flex items-center justify-center p-4">
-      <div className="card w-full max-w-md shadow-2xl bg-base-100">
-        <form className="card-body gap-4" onSubmit={handleSubmit}>
-          <h2 className="card-title text-2xl font-bold mx-auto">Reset Your Password</h2>
-          
-          <p className="text-center text-sm text-gray-500">
-            A verification code has been sent to <span className="font-medium">{email || 'your email'}</span>.
-          </p>
-
-          {error && <div className="alert alert-error text-sm p-2"><span>{error}</span></div>}
-
-          {/* OTP/Token Input */}
-          <div className="form-control">
-            <label className="label"><span className="label-text">Verification Code</span></label>
-            <input
-              type="text"
-              placeholder="Enter the 6-digit code"
-              className="input input-bordered"
-              required
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              maxLength={6}
-            />
-          </div>
-          
-          {/* New Password Input */}
-          <div className="form-control">
-            <label className="label"><span className="label-text">New Password</span></label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="input input-bordered"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          {/* Confirm New Password Input */}
-          <div className="form-control">
-            <label className="label"><span className="label-text">Confirm New Password</span></label>
-            <input
-              type="password"
-              placeholder="••••••••"
-              className="input input-bordered"
-              required
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="form-control mt-2">
-            <button type="submit" className="btn btn-primary btn-lg w-full" disabled={loading}>
-              {loading ? <span className="loading loading-spinner"></span> : 'Reset Password'}
-            </button>
-          </div>
-
-          <p className="text-center mt-2 text-sm">
-            Didn't get a code?{' '}
-            <Link href="/forgot-password" className="link link-primary">Resend</Link>
-          </p>
-        </form>
-      </div>
+      <Suspense fallback={<div className="loading loading-spinner loading-lg"></div>}>
+        <ResetPasswordForm />
+      </Suspense>
     </div>
   );
 }
