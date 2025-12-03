@@ -10,10 +10,10 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3001';
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
 
   app.enableCors({
-    origin: frontendUrl,
+    origin: [frontendUrl, 'http://localhost:3000', 'https://nexhire.up.railway.app'],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });

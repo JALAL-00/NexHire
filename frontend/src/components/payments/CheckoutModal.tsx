@@ -50,23 +50,24 @@ const CheckoutForm = ({ plan, onClose }: { plan: any, onClose: () => void }) => 
 
     try {
       const token = Cookies.get('auth_token');
-      const response = await axios.post('http://localhost:3000/payments/charge', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${API_URL}/payments/charge`, {
         paymentMethodId: paymentMethod.id,
         amount: plan.price,
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       if (response.data.success && response.data.newAccessToken) {
-        setSucceeded(true); 
-        
+        setSucceeded(true);
+
         const newToken = response.data.newAccessToken;
-        Cookies.set('auth_token', newToken, { expires: 1 }); 
-        
+        Cookies.set('auth_token', newToken, { expires: 1 });
+
         alert('Payment successful! Your plan has been upgraded.');
 
         const decodedToken = jwtDecode<DecodedToken>(newToken);
-        
+
         if (decodedToken.role === 'recruiter') {
           window.location.href = '/create-job';
         } else {

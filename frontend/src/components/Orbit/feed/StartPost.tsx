@@ -46,7 +46,7 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
     }
 
     onPostCreated(formData);
-    
+
     // Reset state and close modal
     setPostText('');
     setPostFile(null);
@@ -60,9 +60,9 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
       openModal();
     }
   };
-  
+
   const triggerFileInput = () => {
-      fileInputRef.current?.click();
+    fileInputRef.current?.click();
   };
 
   return (
@@ -72,9 +72,9 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
         <div className="flex items-center gap-4">
           <div className="avatar">
             <div className="w-12 rounded-full">
-              <img 
-                src={avatarUrl} 
-                alt="User Avatar" 
+              <img
+                src={avatarUrl}
+                alt="User Avatar"
                 onError={(e) => { e.currentTarget.src = '/default-avatar.png'; }}
               />
             </div>
@@ -87,7 +87,7 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
           <button className="btn btn-ghost btn-sm flex-1" onClick={triggerFileInput}>
             <ImageIcon size={20} className="text-blue-500" /> Photo
           </button>
-           {/* You can add more buttons here that trigger the same file input */}
+          {/* You can add more buttons here that trigger the same file input */}
         </div>
       </div>
 
@@ -98,7 +98,7 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
             <h3 className="font-bold text-lg">Create a Post</h3>
             <button onClick={closeModal} className="btn btn-sm btn-circle btn-ghost">✕</button>
           </div>
-          
+
           <div className="py-4">
             <textarea
               className="textarea textarea-bordered w-full h-40"
@@ -109,33 +109,33 @@ const StartPost = ({ user, onPostCreated }: StartPostProps) => {
 
             {/* FIX 3: File preview inside the modal */}
             {postFile && (
-                <div className="mt-4 p-2 bg-gray-100 rounded-lg flex items-center justify-between gap-2 border">
-                    <div className="flex items-center gap-2 overflow-hidden">
-                        <Paperclip size={16} className="text-gray-600 flex-shrink-0" />
-                        <span className="truncate text-sm">{postFile.name}</span>
-                    </div>
-                    <button onClick={() => setPostFile(null)} className="btn btn-xs btn-circle btn-ghost">
-                        <X size={14}/>
-                    </button>
+              <div className="mt-4 p-2 bg-gray-100 rounded-lg flex items-center justify-between gap-2 border">
+                <div className="flex items-center gap-2 overflow-hidden">
+                  <Paperclip size={16} className="text-gray-600 flex-shrink-0" />
+                  <span className="truncate text-sm">{postFile.name}</span>
                 </div>
+                <button onClick={() => setPostFile(null)} className="btn btn-xs btn-circle btn-ghost">
+                  <X size={14} />
+                </button>
+              </div>
             )}
           </div>
-          
+
           {/* FIX 4: Action buttons are now INSIDE the modal */}
           <div className="flex items-center gap-2 mb-4 border-t pt-4">
-            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><ImageIcon size={20}/></button>
-            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><Video size={20}/></button>
-            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><FileText size={20}/></button>
+            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><ImageIcon size={20} /></button>
+            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><Video size={20} /></button>
+            <button className="btn btn-sm btn-ghost" onClick={triggerFileInput}><FileText size={20} /></button>
           </div>
 
           <div className="modal-action mt-0">
             {/* The disabled logic is now corrected */}
-            <button 
-                className="btn btn-primary" 
-                onClick={handlePostSubmit} 
-                disabled={!postText.trim() && !postFile}
+            <button
+              className="btn btn-primary"
+              onClick={handlePostSubmit}
+              disabled={!postText.trim() && !postFile}
             >
-                Post
+              Post
             </button>
           </div>
         </div>

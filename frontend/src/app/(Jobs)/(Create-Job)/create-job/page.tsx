@@ -21,7 +21,7 @@ export default function CreateJobPage() {
   const [error, setError] = useState('');
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
   const [postedJobTitle, setPostedJobTitle] = useState('');
-  
+
   // --- THIS IS THE FIX ---
   // 1. Create a ref to track if the effect has already run.
   const effectRan = useRef(false);
@@ -41,9 +41,10 @@ export default function CreateJobPage() {
           router.push('/login');
           return;
         }
-        
+
         try {
-          const response = await axios.get('http://localhost:3000/recruiter/job-status', {
+          const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+          const response = await axios.get(`${API_URL}/recruiter/job-status`, {
             headers: { Authorization: `Bearer ${token}` }
           });
 
@@ -98,14 +99,15 @@ export default function CreateJobPage() {
       expirationDate: formData.expirationDate || null,
       jobType: formData.jobType,
       jobLevel: formData.jobLevel,
-      education: formData.education, 
+      education: formData.education,
     };
 
     try {
-      await axios.post('http://localhost:3000/recruiter/jobs', jobPayload, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      await axios.post(`${API_URL}/recruiter/jobs`, jobPayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setPostedJobTitle(jobPayload.title);
       setIsSuccessModalOpen(true);
 
@@ -114,9 +116,9 @@ export default function CreateJobPage() {
       if (err.response?.status === 403) {
         alert('You have reached your job posting limit. Please upgrade to post more jobs.');
         router.push('/pricing');
-        return; 
+        return;
       }
-      
+
       const errorMessage = err.response?.data?.message || "Failed to post job. Please check the fields and try again.";
       setError(errorMessage);
       console.error("An unexpected error occurred while posting a job:", err);
@@ -125,7 +127,7 @@ export default function CreateJobPage() {
       setIsLoading(false);
     }
   };
-  
+
   if (isVerifying) {
     return (
       <div className="flex justify-center items-center h-screen bg-base-200">

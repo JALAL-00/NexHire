@@ -37,14 +37,15 @@ export default function JobDetailPage() {
       }
       setIsLoading(true);
       setError('');
-      
+
       try {
         const userProfile = await getMyProfile();
         setCurrentUser(userProfile);
 
-        const jobResponse = await axios.get(`http://localhost:3000/jobs/${id}`);
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const jobResponse = await axios.get(`${API_URL}/jobs/${id}`);
         setJob(jobResponse.data);
-        
+
         const jobId = parseInt(id as string, 10);
 
         if (userProfile.role === 'candidate') {
@@ -114,7 +115,7 @@ export default function JobDetailPage() {
                 <Briefcase size={48} className="text-primary" />
               </figure>
               <div className="flex-grow">
-                 <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
                   <h1 className="text-3xl font-bold text-gray-800">{job.title}</h1>
                   {job.jobType && <div className="badge badge-info badge-outline">{job.jobType}</div>}
                 </div>
@@ -125,10 +126,10 @@ export default function JobDetailPage() {
                       <LinkIcon size={16} /> {job.recruiter.companyName || 'Website'}
                     </a>
                   ) : job.recruiter?.companyName ? (
-                     <span className="flex items-center gap-2"><LinkIcon size={16} /> {job.recruiter.companyName}</span>
+                    <span className="flex items-center gap-2"><LinkIcon size={16} /> {job.recruiter.companyName}</span>
                   ) : null}
-                  {job.recruiter?.phone && ( <span className="flex items-center gap-2"><Phone size={16} /> {job.recruiter.phone}</span> )}
-                  {job.recruiter?.email && ( <a href={`mailto:${job.recruiter.email}`} className="flex items-center gap-2 hover:text-primary"><Mail size={16} /> {job.recruiter.email}</a> )}
+                  {job.recruiter?.phone && (<span className="flex items-center gap-2"><Phone size={16} /> {job.recruiter.phone}</span>)}
+                  {job.recruiter?.email && (<a href={`mailto:${job.recruiter.email}`} className="flex items-center gap-2 hover:text-primary"><Mail size={16} /> {job.recruiter.email}</a>)}
                 </div>
               </div>
 
@@ -145,8 +146,8 @@ export default function JobDetailPage() {
                 )}
 
                 {currentUser?.role === 'candidate' && (
-                  <button 
-                    onClick={() => !hasApplied && setIsModalOpen(true)} 
+                  <button
+                    onClick={() => !hasApplied && setIsModalOpen(true)}
                     className="btn btn-primary flex-grow"
                     disabled={hasApplied}
                   >
@@ -160,7 +161,7 @@ export default function JobDetailPage() {
                   </button>
                 )}
                 {!currentUser && (
-                    <button className="btn btn-primary flex-grow" onClick={() => toast.error('Please log in to apply.')}>Apply Now →</button>
+                  <button className="btn btn-primary flex-grow" onClick={() => toast.error('Please log in to apply.')}>Apply Now →</button>
                 )}
 
               </div>
@@ -185,9 +186,9 @@ export default function JobDetailPage() {
               </div>
               <div className="flex items-center gap-4 mt-8 border-t pt-6">
                 <span className="font-semibold">Share this job:</span>
-                <button className="btn btn-sm btn-outline gap-2"><Facebook size={16}/> Facebook</button>
-                <button className="btn btn-sm btn-outline gap-2"><TwitterIcon size={16}/> Twitter</button>
-                <button className="btn btn-sm btn-outline gap-2"><FaPinterestP size={16}/> Pinterest</button>
+                <button className="btn btn-sm btn-outline gap-2"><Facebook size={16} /> Facebook</button>
+                <button className="btn btn-sm btn-outline gap-2"><TwitterIcon size={16} /> Twitter</button>
+                <button className="btn btn-sm btn-outline gap-2"><FaPinterestP size={16} /> Pinterest</button>
               </div>
             </div>
             <div className="lg:col-span-4">
@@ -197,10 +198,10 @@ export default function JobDetailPage() {
         </main>
       </div>
       {isModalOpen && (
-        <ApplyJobModal 
-          jobId={job.id} 
-          jobTitle={job.title} 
-          onClose={() => setIsModalOpen(false)} 
+        <ApplyJobModal
+          jobId={job.id}
+          jobTitle={job.title}
+          onClose={() => setIsModalOpen(false)}
         />
       )}
     </>

@@ -5,7 +5,7 @@ import { User } from "@/types";
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 interface LeftSidebarProps {
-  user: User | null;
+    user: User | null;
 }
 
 const LeftSidebar = ({ user }: LeftSidebarProps) => {
@@ -50,9 +50,9 @@ const LeftSidebar = ({ user }: LeftSidebarProps) => {
                 <div className="flex flex-col items-center text-center">
                     <div className="avatar">
                         <div className="w-24 rounded-full ring-2 ring-primary ring-offset-2">
-                            <img 
-                                src={avatarUrl} 
-                                alt={name} 
+                            <img
+                                src={avatarUrl}
+                                alt={name}
                                 // Add an error handler to show the default avatar if the link is broken
                                 onError={(e) => { e.currentTarget.src = '/default-avatar.png'; }}
                             />

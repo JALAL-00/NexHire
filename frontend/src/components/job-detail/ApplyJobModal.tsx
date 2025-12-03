@@ -44,18 +44,19 @@ export const ApplyJobModal = ({ jobId, jobTitle, onClose }: ApplyJobModalProps) 
       const formData = new FormData();
       formData.append('resume', resumeFile);
 
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const uploadResponse = await axios.post<{ filePath: string }>(
-        'http://localhost:3000/candidate/resume',
+        `${API_URL}/candidate/resume`,
         formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${token}`,
-          },
-          onUploadProgress: (progressEvent) => {
-            const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
-            setUploadProgress(percent);
-          },
-        });
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
+        onUploadProgress: (progressEvent) => {
+          const percent = Math.round((progressEvent.loaded * 100) / (progressEvent.total || 1));
+          setUploadProgress(percent);
+        },
+      });
 
       const resumePath = uploadResponse.data.filePath;
 
@@ -66,7 +67,7 @@ export const ApplyJobModal = ({ jobId, jobTitle, onClose }: ApplyJobModalProps) 
         resume: resumePath, // Pass the specific resume path
       };
 
-      await axios.post('http://localhost:3000/candidate/apply-job', applicationPayload, {
+      await axios.post(`${API_URL}/candidate/apply-job`, applicationPayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
@@ -104,7 +105,7 @@ export const ApplyJobModal = ({ jobId, jobTitle, onClose }: ApplyJobModalProps) 
                 </div>
                 <input id="dropzone-file" type="file" className="hidden" onChange={handleFileChange} accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx" />
               </label>
-            </div> 
+            </div>
             {resumeFile && <p className="text-sm text-success mt-2">Selected file: {resumeFile.name}</p>}
             {isLoading && uploadProgress > 0 && <progress className="progress progress-primary w-full mt-2" value={uploadProgress} max="100"></progress>}
           </div>

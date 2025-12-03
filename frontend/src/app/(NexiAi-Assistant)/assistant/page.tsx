@@ -52,12 +52,13 @@ export default function AssistantPage() {
     }
 
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const response = await axios.post(
-        'http://localhost:3000/ai/assistant',
+        `${API_URL}/ai/assistant`,
         { userInput: currentInput },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      
+
       const aiMessage: Message = { sender: 'ai', text: response.data.response };
       setMessages(prev => [...prev, aiMessage]);
     } catch (error) {
@@ -73,8 +74,8 @@ export default function AssistantPage() {
   // to fill the space BELOW your main navbar. A typical navbar height is around 72px.
   // This avoids layout conflicts and the need for a fixed footer.
   return (
-    <div 
-      className="flex flex-col w-full bg-base-200 text-base-content" 
+    <div
+      className="flex flex-col w-full bg-base-200 text-base-content"
       style={{ height: 'calc(100vh - 72px)' }} // Adjust 72px if your navbar is taller/shorter
     >
       {/* Main chat area grows to fill available space and is scrollable */}

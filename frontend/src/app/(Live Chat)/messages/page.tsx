@@ -48,7 +48,8 @@ function MessagesContent() {
     }
 
     // Connect the socket
-    const socket = io(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000', {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    const socket = io(API_URL, {
       extraHeaders: { Authorization: `Bearer ${token}` },
     });
     socketRef.current = socket;

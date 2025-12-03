@@ -17,7 +17,7 @@ const RightSidebar = () => {
             setIsLoading(true);
             try {
                 // Fetch 3 recommendations from the API
-                const users = await getFollowRecommendations(3); 
+                const users = await getFollowRecommendations(3);
                 setRecommendations(users);
             } catch (error) {
                 console.error("Could not load recommendations", error);
@@ -38,7 +38,7 @@ const RightSidebar = () => {
         }
         return 'NexHire User';
     };
-    
+
     // Helper function to get the correct avatar URL
     const renderAvatar = (user: User) => {
         let avatarPath = null;
@@ -74,9 +74,9 @@ const RightSidebar = () => {
                                 <div key={user.id} className="flex items-center gap-3">
                                     <div className="avatar">
                                         <div className="w-10 rounded-full">
-                                            <img 
+                                            <img
                                                 src={renderAvatar(user)}
-                                                alt={`${user.firstName} ${user.lastName}`} 
+                                                alt={`${user.firstName} ${user.lastName}`}
                                                 onError={(e) => { e.currentTarget.src = '/default-avatar.png'; }}
                                             />
                                         </div>

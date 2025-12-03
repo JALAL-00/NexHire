@@ -42,7 +42,8 @@ export default function ScrapingPage() {
     console.log("Starting scrape with payload:", payload);
 
     try {
-      const response = await axios.post('http://localhost:3000/scraper/jobs', payload, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${API_URL}/scraper/jobs`, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setResults(response.data);
@@ -71,13 +72,13 @@ export default function ScrapingPage() {
             <div className="card bg-base-100/90 backdrop-blur-lg shadow-xl border border-gray-200/50">
               <form onSubmit={handleScrape} className="card-body space-y-6">
                 <h2 className="card-title text-2xl">Scraping Parameters</h2>
-                
+
                 {/* Source Selection */}
                 <div className="form-control">
                   <label className="label"><span className="label-text">Source</span></label>
                   <div className="relative">
                     <Globe className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <select 
+                    <select
                       className="select select-bordered w-full pl-10"
                       value={source}
                       onChange={(e) => setSource(e.target.value)}
@@ -94,9 +95,9 @@ export default function ScrapingPage() {
                   <label className="label"><span className="label-text">Search Term (e.g., "Data Scientist")</span></label>
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      placeholder="Job title or keyword" 
+                    <input
+                      type="text"
+                      placeholder="Job title or keyword"
                       className="input input-bordered w-full pl-10"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -110,9 +111,9 @@ export default function ScrapingPage() {
                   <label className="label"><span className="label-text">Location</span></label>
                   <div className="relative">
                     <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-                    <input 
-                      type="text" 
-                      placeholder="City or country" 
+                    <input
+                      type="text"
+                      placeholder="City or country"
                       className="input input-bordered w-full pl-10"
                       value={location}
                       onChange={(e) => setLocation(e.target.value)}
@@ -127,19 +128,19 @@ export default function ScrapingPage() {
                     <span className="label-text">Job Limit</span>
                     <span className="label-text-alt text-primary font-bold">{limit}</span>
                   </label>
-                  <input 
-                    type="range" 
-                    min="1" 
-                    max="50" 
-                    value={limit} 
-                    className="range range-primary" 
+                  <input
+                    type="range"
+                    min="1"
+                    max="50"
+                    value={limit}
+                    className="range range-primary"
                     onChange={(e) => setLimit(Number(e.target.value))}
                   />
                 </div>
 
                 <div className="card-actions justify-end">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary btn-lg w-full md:w-auto"
                     disabled={isLoading}
                   >
@@ -169,13 +170,13 @@ export default function ScrapingPage() {
                 </ul>
               </div>
             </div>
-          <div className="card bg-gray-200 h-60 flex items-center justify-center">
-            <img
-              src="/images/Job-Search.jpg" // Replace with your image path or URL
-              alt="Advertisement"
-              className="w-full h-full object-cover rounded-lg"
-            />
-          </div>
+            <div className="card bg-gray-200 h-60 flex items-center justify-center">
+              <img
+                src="/images/Job-Search.jpg" // Replace with your image path or URL
+                alt="Advertisement"
+                className="w-full h-full object-cover rounded-lg"
+              />
+            </div>
           </div>
         </div>
 
@@ -192,10 +193,10 @@ export default function ScrapingPage() {
                   </div>
                 )}
                 {error && (
-                   <div role="alert" className="alert alert-error">
-                     <AlertTriangle />
-                     <span><strong>Error:</strong> {error}</span>
-                   </div>
+                  <div role="alert" className="alert alert-error">
+                    <AlertTriangle />
+                    <span><strong>Error:</strong> {error}</span>
+                  </div>
                 )}
                 {!isLoading && !error && results.length === 0 && (
                   <div className="text-center text-gray-400 py-16 border-2 border-dashed border-gray-300 rounded-lg">

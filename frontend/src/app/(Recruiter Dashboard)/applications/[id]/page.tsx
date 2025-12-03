@@ -26,7 +26,7 @@ interface ApplicationResponse {
     phone?: string;
     candidateProfile?: {
       title?: string;
-      experience?: { title: string; org: string; }[]; 
+      experience?: { title: string; org: string; }[];
       education?: { degree: string; institution: string; }[];
       about?: string;
       biography?: string;
@@ -79,24 +79,26 @@ export default function JobApplicationsPage() {
     }
 
     try {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const response = await fetch(
-        `http://localhost:3000/applications/job/${jobId}`,
+        `${API_URL}/applications/job/${jobId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       if (!response.ok) throw new Error('Failed to fetch applications');
-      
+
       const applications: ApplicationResponse[] = await response.json();
 
       if (applications.length > 0) {
         setJobTitle(applications[0].job.title);
       } else {
-         const jobResponse = await fetch(`http://localhost:3000/jobs/${jobId}`, { headers: { Authorization: `Bearer ${token}` } });
-         if(jobResponse.ok) {
-            const jobData = await jobResponse.json();
-            setJobTitle(jobData.title || 'Job Applications');
-         } else {
-            setJobTitle('Job Applications');
-         }
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const jobResponse = await fetch(`${API_URL}/jobs/${jobId}`, { headers: { Authorization: `Bearer ${token}` } });
+        if (jobResponse.ok) {
+          const jobData = await jobResponse.json();
+          setJobTitle(jobData.title || 'Job Applications');
+        } else {
+          setJobTitle('Job Applications');
+        }
       }
 
       const columnsMap: Map<string, Applicant[]> = new Map([
@@ -111,7 +113,7 @@ export default function JobApplicationsPage() {
 
         const applicant: Applicant = {
           id: app.id,
-          candidateId: app.candidate.id, 
+          candidateId: app.candidate.id,
           name: `${app.candidate.firstName || ''} ${app.candidate.lastName || ''}`.trim(),
           title: app.candidate.candidateProfile?.title || 'N/A',
           // --- THIS IS THE ONLY CHANGE IN THIS FILE ---
@@ -120,13 +122,13 @@ export default function JobApplicationsPage() {
           education: educationString,
           appliedDate: new Date(app.createdAt).toLocaleDateString(),
           resume: app.candidate.resume || null,
-          fullDetails: { 
-            applicationId: app.id, 
-            status: app.status, 
-            candidate: app.candidate as any 
+          fullDetails: {
+            applicationId: app.id,
+            status: app.status,
+            candidate: app.candidate as any
           },
         };
-        
+
         const status = app.status || 'pending';
         if (!columnsMap.has(status)) { columnsMap.set(status, []); }
         columnsMap.get(status)?.push(applicant);
@@ -156,24 +158,25 @@ export default function JobApplicationsPage() {
   const handleDownloadCV = (e: React.MouseEvent, resumePath: string | null) => {
     e.stopPropagation();
     if (resumePath) {
-      const resumeUrl = `http://localhost:3000/${resumePath}`;
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const resumeUrl = `${API_URL}/${resumePath}`;
       window.open(resumeUrl, '_blank');
     } else {
       alert("No resume available for this candidate.");
     }
   };
-  
+
   const handleUpdateStatus = async (applicationId: number, newStatus: 'pending' | 'accepted' | 'rejected') => {
     try {
-        await updateApplicationStatus(applicationId, newStatus);
-        fetchApplications(); 
-        setSelectedApplicant(null);
+      await updateApplicationStatus(applicationId, newStatus);
+      fetchApplications();
+      setSelectedApplicant(null);
     } catch (apiError) {
-        console.error(apiError);
-        alert('Failed to update status. Please try again.');
+      console.error(apiError);
+      alert('Failed to update status. Please try again.');
     }
   };
-  
+
   const handleScreenAllResumes = async () => {
     setIsScreening(true);
     setScreeningError(null);
@@ -189,7 +192,7 @@ export default function JobApplicationsPage() {
       setIsScreening(false);
     }
   };
-  
+
   const handleAddColumn = (columnName: string) => {
     const newColumn: Column = {
       id: columnName.toLowerCase().replace(/\s+/g, '-'),
@@ -223,7 +226,7 @@ export default function JobApplicationsPage() {
               </button>
             </div>
           </div>
-          
+
           {isLoading ? (
             <div className="text-center py-20"><span className="loading loading-spinner loading-lg"></span></div>
           ) : error ? (
@@ -231,7 +234,7 @@ export default function JobApplicationsPage() {
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 items-start">
               {columns.map(column => (
-                <ApplicationColumn 
+                <ApplicationColumn
                   key={column.id}
                   title={column.title}
                   count={column.applicants.length}
@@ -250,10 +253,10 @@ export default function JobApplicationsPage() {
         </main>
       </div>
 
-      {isAddColumnModalOpen && <AddColumnModal onClose={() => setIsAddColumnModalOpen(false)} onAddColumn={handleAddColumn}/>}
+      {isAddColumnModalOpen && <AddColumnModal onClose={() => setIsAddColumnModalOpen(false)} onAddColumn={handleAddColumn} />}
 
       {selectedApplicant && (
-        <ApplicantDetailModal 
+        <ApplicantDetailModal
           applicant={selectedApplicant}
           onClose={() => setSelectedApplicant(null)}
           onDownloadCV={(e) => handleDownloadCV(e, selectedApplicant.candidate.resume)}

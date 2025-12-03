@@ -7,8 +7,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CheckCircle, XCircle, Users, MoreVertical, PlusCircle, Eye, Edit, Trash2 } from 'lucide-react';
 import Pagination from '@/components/jobs/Pagination';
-import { PromoteJobModal } from '@/components/jobs/PromoteJobModal'; 
-import { UpdateJobModal } from '@/components/jobs/UpdateJobModal';   
+import { PromoteJobModal } from '@/components/jobs/PromoteJobModal';
+import { UpdateJobModal } from '@/components/jobs/UpdateJobModal';
 
 interface Job {
   id: number;
@@ -25,17 +25,17 @@ interface Job {
 }
 
 export default function ManageJobsPage() {
-  const [jobs, setJobs] = useState<Job[]>([]); 
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);  // To track total pages
   const [isPromoteModalOpen, setIsPromoteModalOpen] = useState(false);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [selectedJob, setSelectedJob] = useState<Job | null>(null); 
+  const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const router = useRouter();
 
-const fetchJobs = useCallback(async () => {
+  const fetchJobs = useCallback(async () => {
     setIsLoading(true);
     setError('');
     const token = Cookies.get('auth_token');
@@ -45,7 +45,8 @@ const fetchJobs = useCallback(async () => {
       return;
     }
     try {
-      const response = await axios.get('http://localhost:3000/recruiter/jobs', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await axios.get(`${API_URL}/recruiter/jobs`, {
         params: {
           page: currentPage,
           limit: 10, // You can change the limit as needed
@@ -97,7 +98,8 @@ const fetchJobs = useCallback(async () => {
     }
     const token = Cookies.get('auth_token');
     try {
-      await axios.delete('http://localhost:3000/recruiter/jobs', {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      await axios.delete(`${API_URL}/recruiter/jobs`, {
         headers: { Authorization: `Bearer ${token}` },
         data: { jobId: jobId }
       });
@@ -154,21 +156,21 @@ const fetchJobs = useCallback(async () => {
                       <td>
                         <div className="flex items-center gap-2 text-gray-600"><Users size={16} /> {job.applicationCount} Applications</div>
                       </td>
-                      <td className="text-center"> 
+                      <td className="text-center">
                         <div className="flex items-center justify-center gap-2">
                           <Link href={`/applications/${job.id}`} className="btn btn-primary btn-sm">View Applications</Link>
                           <div className="dropdown dropdown-end">
                             <label tabIndex={0} className="btn btn-ghost btn-sm btn-circle"><MoreVertical /></label>
                             <ul tabIndex={0} className="dropdown-content z-[1] menu p-2 shadow bg-base-100 rounded-box w-52">
-                              <li><button onClick={() => openPromoteModal(job)}><PlusCircle size={16}/> Promote Job</button></li>
-                              <li><Link href={`/jobs/${job.id}`}><Eye size={16}/> View Detail</Link></li>
-                              <li><button onClick={() => openUpdateModal(job)}><Edit size={16}/> Update Job</button></li>
+                              <li><button onClick={() => openPromoteModal(job)}><PlusCircle size={16} /> Promote Job</button></li>
+                              <li><Link href={`/jobs/${job.id}`}><Eye size={16} /> View Detail</Link></li>
+                              <li><button onClick={() => openUpdateModal(job)}><Edit size={16} /> Update Job</button></li>
                               <li><button onClick={() => toggleJobStatus(job)}>
-                                {job.status === 'Active' ? <XCircle size={16}/> : <CheckCircle size={16}/>}
+                                {job.status === 'Active' ? <XCircle size={16} /> : <CheckCircle size={16} />}
                                 {job.status === 'Active' ? 'Mark as Expired' : 'Mark as Active'}
                               </button></li>
                               <div className="divider my-1"></div>
-                              <li><button className="text-error" onClick={() => handleDeleteJob(job.id)}><Trash2 size={16}/> Delete Job</button></li>
+                              <li><button className="text-error" onClick={() => handleDeleteJob(job.id)}><Trash2 size={16} /> Delete Job</button></li>
                             </ul>
                           </div>
                         </div>

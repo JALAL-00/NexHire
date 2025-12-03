@@ -96,7 +96,8 @@ export const UpdateJobModal = ({ job, onClose, onJobUpdated }: UpdateJobModalPro
     console.log("Submitting update:", updatePayload);
 
     try {
-      await axios.patch('http://localhost:3000/recruiter/jobs', updatePayload, {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      await axios.patch(`${API_URL}/recruiter/jobs`, updatePayload, {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Job updated successfully!');

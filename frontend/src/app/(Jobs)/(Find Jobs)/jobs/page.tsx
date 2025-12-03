@@ -49,12 +49,13 @@ export default function FindJobPage() {
     if (skillsArray.length > 0) searchPayload.skills = skillsArray;
 
     try {
-      const response = await axios.post('http://localhost:3000/jobs', searchPayload);
-      
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${API_URL}/jobs`, searchPayload);
+
       // --- THIS IS THE FIX ---
       // 1. Extract the 'jobs' array from the response object
       setJobs(response.data.jobs);
-      
+
       // 2. Set the dynamic pagination data from the API response
       setTotalJobs(response.data.totalCount);
       setTotalPages(response.data.totalPages);
@@ -78,13 +79,13 @@ export default function FindJobPage() {
     setCurrentPage(1); // Reset to first page when filters change
     setFilters(prev => ({ ...prev, [name]: value }));
   };
-  
+
   const handleTopSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setCurrentPage(1); // Reset to first page on a new search
     fetchJobs(1);
   };
-  
+
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -148,7 +149,7 @@ export default function FindJobPage() {
                 <div className="text-center py-10"><p className="text-gray-500">No jobs found. Try adjusting your search criteria.</p></div>
               )}
             </div>
-            
+
             {/* --- DYNAMIC PAGINATION --- */}
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
           </div>

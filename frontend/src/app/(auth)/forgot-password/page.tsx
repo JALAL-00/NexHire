@@ -11,7 +11,7 @@ export default function ForgotPasswordPage() {
   const [error, setError] = useState('');
   const router = useRouter();
 
-  const API_URL = 'http://localhost:3000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
       await axios.post(`${API_URL}/auth/forgot-password`, { email });
 
       alert('A verification code has been sent to your email.');
-      
+
       // Step 2: Redirect to the reset-password page on success
       router.push(`/reset-password?email=${encodeURIComponent(email)}`);
 
@@ -43,7 +43,7 @@ export default function ForgotPasswordPage() {
           <p className="text-center text-sm text-gray-500">
             Enter your email and we'll send you a code to reset your password.
           </p>
-          
+
           {error && <div className="alert alert-error text-sm p-2">{error}</div>}
 
           <div className="form-control">

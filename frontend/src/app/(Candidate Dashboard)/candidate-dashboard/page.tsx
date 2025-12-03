@@ -50,7 +50,8 @@ export default function CandidateDashboardPage() {
     };
 
     try {
-      const response = await axios.post('http://localhost:3000/jobs', searchPayload);
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await axios.post(`${API_URL}/jobs`, searchPayload);
 
       if (response.data && response.data.jobs) {
         setLiveJobs(response.data.jobs);
