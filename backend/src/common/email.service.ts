@@ -18,13 +18,19 @@ export class EmailService {
   }
 
   async sendMail(to: string, subject: string, text: string): Promise<void> {
-    const mailOptions = {
-      from: this.configService.get<string>('GMAIL_USER'),
-      to,
-      subject,
-      text,
-    };
-    await this.transporter.sendMail(mailOptions);
+    try {
+      const mailOptions = {
+        from: this.configService.get<string>('GMAIL_USER'),
+        to,
+        subject,
+        text,
+      };
+      await this.transporter.sendMail(mailOptions);
+    } catch (error) {
+      // Log error but don't crash the application
+      console.error('Failed to send email:', error.message);
+      // In production, you might want to use a proper logging service
+    }
   }
 
   async sendNewProjectNotification(to: string, project: { title: string; description: string; requiredSkills: string[] }) {
