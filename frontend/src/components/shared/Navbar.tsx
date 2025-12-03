@@ -8,7 +8,7 @@ import Cookies from 'js-cookie';
 import { jwtDecode } from 'jwt-decode';
 import { Bell, MessageSquare, AlertTriangle, Settings, Search, Menu } from 'lucide-react';
 import Image from 'next/image';
-import { getMyProfile } from '@/lib/api'; 
+import { getMyProfile } from '@/lib/api';
 import { getInitials } from '@/lib/utils';
 
 interface DecodedToken {
@@ -39,7 +39,7 @@ const Navbar = () => {
             const profileData = await getMyProfile();
             if (profileData) {
               setUserName(`${profileData.firstName || ''} ${profileData.lastName || ''}`.trim());
-              
+
               let picPath = null;
               let coverPath = null;
 
@@ -74,13 +74,17 @@ const Navbar = () => {
     const token = Cookies.get('auth_token');
     try {
       if (token) {
-        axios.post(`${API_URL}/auth/logout`, { token });
+        await axios.post(`${API_URL}/auth/logout`, { token });
       }
     } catch (error) {
       console.error("Logout API call failed, but logging out client-side anyway.", error);
     } finally {
+      // Remove cookie with all possible options to ensure it's deleted
+      Cookies.remove('auth_token', { path: '/' });
       Cookies.remove('auth_token');
-      router.push('/home');
+
+      // Use window.location for immediate redirect, bypassing Next.js router
+      window.location.href = '/home';
     }
   };
 
@@ -98,7 +102,7 @@ const Navbar = () => {
       });
       alert('Your account has been successfully deleted.');
       // The modal will disappear automatically on the redirect below
-      handleLogout(); 
+      handleLogout();
     } catch (error) {
       console.error("Failed to delete account:", error);
       alert("There was an error deleting your account. Please try again.");
@@ -151,7 +155,7 @@ const Navbar = () => {
                   <>
                     <li><Link href="/jobs">Find Jobs</Link></li>
                     <li><Link href="/scraping">Scraping</Link></li>
-                    <li><Link href="/career-guides">Career Guides</Link></li> 
+                    <li><Link href="/career-guides">Career Guides</Link></li>
                   </>
                 )}
                 {userRole === 'recruiter' && (
@@ -165,7 +169,7 @@ const Navbar = () => {
                 <li><Link href="/scroll-dashboard">Orbit Scroll</Link></li>
               </ul>
             </div>
-            
+
             <Link href="/home" className="btn btn-ghost text-xl font-bold text-primary">NexHire</Link>
           </div>
 
@@ -185,7 +189,7 @@ const Navbar = () => {
 
             {userRole === 'recruiter' && (
               <>
-              {/* 
+                {/* 
                 <div className="form-control">
                   <input type="text" placeholder="Search for candidates" className="input input-bordered w-24 md:w-64 h-10" />
                 </div>
@@ -222,7 +226,7 @@ const Navbar = () => {
                   )}
                 </div>
               </label>
-              
+
               <div tabIndex={0} className="mt-3 z-[1] card card-compact dropdown-content w-96 bg-white shadow-xl rounded-box">
                 <div className="relative">
                   <div className="h-20 w-full rounded-t-xl bg-base-200">

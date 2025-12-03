@@ -1,26 +1,30 @@
-'use client'; 
+'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation'; 
-import axios from 'axios'; 
-import Cookies from 'js-cookie'; 
+import { useRouter } from 'next/navigation';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 import { LayoutGrid, UserPlus, Briefcase, Calendar, Headset, Leaf, PlusCircle, Star, Mail, LogOut, DollarSign } from 'lucide-react';
 
 const RecruiterSidebar = () => {
-  const router = useRouter(); 
+  const router = useRouter();
   const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   const handleLogout = async () => {
     const token = Cookies.get('auth_token');
     try {
       if (token) {
-        axios.post(`${API_URL}/auth/logout`, { token });
+        await axios.post(`${API_URL}/auth/logout`, { token });
       }
     } catch (error) {
       console.error("Logout API call failed, but logging out client-side anyway.", error);
     } finally {
+      // Remove cookie with all possible options to ensure it's deleted
+      Cookies.remove('auth_token', { path: '/' });
       Cookies.remove('auth_token');
-      router.push('/home');
+
+      // Use window.location for immediate redirect, bypassing Next.js router
+      window.location.href = '/home';
     }
   };
 
