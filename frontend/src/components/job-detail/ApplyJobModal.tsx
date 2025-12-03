@@ -71,8 +71,12 @@ export const ApplyJobModal = ({ jobId, jobTitle, onClose }: ApplyJobModalProps) 
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      alert(`Successfully applied for: ${jobTitle}`);
-      onClose(); // Close the modal on final success
+      alert(`Successfully applied for: ${jobTitle}`)
+      onClose(); // Close the modal
+
+      // Reload the page to show updated application status
+      window.location.reload();
+
 
     } catch (err: any) {
       console.error("Failed to apply for job:", err);
