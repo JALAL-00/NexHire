@@ -13,6 +13,10 @@ import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Job } from '../jobs/entities/job.entity';
 import { Application } from '../applications/entities/application.entity';
 import { Message } from '../recruiter/entities/message.entity';
+import { Message as ChatMessage } from '../chat/entities/message.entity';
+import { Conversation } from '../chat/entities/conversation.entity';
+import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
+import { Post } from '../posts/entities/post.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import * as bcrypt from 'bcrypt';
@@ -39,6 +43,14 @@ export class AuthService {
     private applicationRepository: Repository<Application>,
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
+    @InjectRepository(ChatMessage)
+    private chatMessageRepository: Repository<ChatMessage>,
+    @InjectRepository(Conversation)
+    private conversationRepository: Repository<Conversation>,
+    @InjectRepository(ScrapedJob)
+    private scrapedJobRepository: Repository<ScrapedJob>,
+    @InjectRepository(Post)
+    private postRepository: Repository<Post>,
     @InjectRepository(CandidateProfile)
     private candidateProfileRepository: Repository<CandidateProfile>,
     @InjectRepository(RecruiterProfile)
@@ -337,16 +349,53 @@ export class AuthService {
       where: { id: userId },
       relations: ['candidateProfile', 'recruiterProfile', 'jobs', 'applications', 'sentMessages', 'receivedMessages'],
     });
+
     if (!user) throw new NotFoundException('User not found');
+
+    // 1. Clean up Chat System (Conversations & Messages)
+    // Find conversations where user is a participant
+    const conversations = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .leftJoinAndSelect('conversation.participants', 'participant')
+      .where('participant.id = :userId', { userId })
+      .getMany();
+
+    for (const conversation of conversations) {
+      // Remove user from participants
+      conversation.participants = conversation.participants.filter(p => p.id !== userId);
+
+      if (conversation.participants.length === 0) {
+        // If no participants left, delete conversation and its messages
+        await this.chatMessageRepository.delete({ conversation: { id: conversation.id } });
+        await this.conversationRepository.remove(conversation);
+      } else {
+        // Save updated participants
+        await this.conversationRepository.save(conversation);
+      }
+    }
+
+    // Delete any remaining chat messages sent by this user
+    await this.chatMessageRepository.delete({ sender: { id: userId } });
+
+    // 2. Clean up Scraped Jobs & Posts
+    await this.scrapedJobRepository.delete({ user: { id: userId } });
+    await this.postRepository.delete({ author: { id: userId } });
+
+    // 3. Clean up Recruiter/Candidate specific data
     if (user.applications) await this.applicationRepository.delete({ candidate: { id: userId } });
     if (user.jobs) await this.jobRepository.delete({ recruiter: { id: userId } });
+
+    // 4. Clean up Recruiter Messages (different from Chat Messages)
     if (user.sentMessages) await this.messageRepository.delete({ sender: { id: userId } });
     if (user.receivedMessages) await this.messageRepository.delete({ receiver: { id: userId } });
 
+    // 5. Clean up Profiles
     if (user.candidateProfile) await this.candidateProfileRepository.delete({ id: user.candidateProfile.id });
     if (user.recruiterProfile) await this.recruiterProfileRepository.delete({ id: user.recruiterProfile.id });
 
+    // 6. Finally delete the user
     await this.userRepository.delete(userId);
+
     return { message: 'Account deleted successfully' };
   }
 

@@ -6,6 +6,10 @@ import { User } from './entities/user.entity';
 import { Job } from '../jobs/entities/job.entity';
 import { Application } from '../applications/entities/application.entity';
 import { Message } from '../recruiter/entities/message.entity';
+import { Message as ChatMessage } from '../chat/entities/message.entity';
+import { Conversation } from '../chat/entities/conversation.entity';
+import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
+import { Post } from '../posts/entities/post.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import { JwtModule } from '@nestjs/jwt';
@@ -15,11 +19,22 @@ import { PassportModule } from '@nestjs/passport';
 import { RoleGuard } from './guards/role.guard';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { EmailService } from '../common/email.service';
-import { GoogleStrategy } from './strategies/google.strategy'; 
+import { GoogleStrategy } from './strategies/google.strategy';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Job, Application, Message, CandidateProfile, RecruiterProfile]),
+    TypeOrmModule.forFeature([
+      User,
+      Job,
+      Application,
+      Message,
+      ChatMessage,
+      Conversation,
+      ScrapedJob,
+      Post,
+      CandidateProfile,
+      RecruiterProfile
+    ]),
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -34,4 +49,4 @@ import { GoogleStrategy } from './strategies/google.strategy';
   providers: [AuthService, JwtStrategy, GoogleStrategy, RoleGuard, JwtAuthGuard, EmailService],
   exports: [AuthService, JwtStrategy, PassportModule, JwtAuthGuard, JwtModule],
 })
-export class AuthModule {}
+export class AuthModule { }
