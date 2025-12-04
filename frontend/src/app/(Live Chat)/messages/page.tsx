@@ -52,9 +52,16 @@ function MessagesContent() {
 
     console.log('🔌 Connecting to Socket.IO server:', API_URL);
     console.log('🌍 Environment:', process.env.NODE_ENV);
+    console.log('🔑 Token available:', !!token);
+    console.log('🔑 Token preview:', token ? `${token.substring(0, 20)}...` : 'none');
 
     const socket = io(API_URL, {
-      extraHeaders: { Authorization: `Bearer ${token}` },
+      auth: {
+        token: token,
+      },
+      extraHeaders: {
+        Authorization: `Bearer ${token}`,
+      },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: 10,

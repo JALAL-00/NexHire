@@ -60,14 +60,17 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         transport: client.conn.transport.name,
         origin: client.handshake.headers.origin,
         hasAuth: !!client.handshake.headers.authorization,
+        hasAuthToken: !!client.handshake.auth?.token,
       });
 
+      // Try to get token from auth object first (Socket.IO v4 way), then from headers
       const authHeader = client.handshake.headers.authorization;
-      const token = authHeader?.split(' ')[1];
+      const token = client.handshake.auth?.token || authHeader?.split(' ')[1];
 
       if (!token) {
         console.error('❌ No token provided in connection');
         console.error('Auth header:', authHeader);
+        console.error('Auth object:', client.handshake.auth);
         client.emit('authError', { message: 'No authentication token provided' });
         client.disconnect();
         return;
