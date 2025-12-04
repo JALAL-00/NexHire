@@ -19,7 +19,7 @@ export class CandidateController {
   constructor(
     private candidateService: CandidateService,
     private applicationsService: ApplicationsService,
-  ) {}
+  ) { }
 
   @Get('profile')
   getProfile(@Req() req) {
@@ -35,7 +35,14 @@ export class CandidateController {
   @UseInterceptors(
     FileInterceptor('resume', {
       storage: diskStorage({
-        destination: './uploads/resumes',
+        destination: (req, file, cb) => {
+          const uploadPath = './uploads/resumes';
+          const fs = require('fs');
+          if (!fs.existsSync(uploadPath)) {
+            fs.mkdirSync(uploadPath, { recursive: true });
+          }
+          cb(null, uploadPath);
+        },
         filename: (req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           const ext = extname(file.originalname);
@@ -74,7 +81,7 @@ export class CandidateController {
     return this.applicationsService.create(req.user.id, createApplicationDto);
   }
 
-    @Get('saved-jobs')
+  @Get('saved-jobs')
   getSavedJobs(@Req() req) {
     return this.candidateService.getSavedJobs(req.user.id);
   }
