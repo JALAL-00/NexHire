@@ -17,8 +17,8 @@ import { CandidateProfile } from '../candidate/entities/candidate-profile.entity
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
-import * as nodemailer from 'nodemailer';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { EmailService } from '../common/email.service';
 
 @Injectable()
 export class AuthService {
@@ -40,20 +40,21 @@ export class AuthService {
     @InjectRepository(Message)
     private messageRepository: Repository<Message>,
     @InjectRepository(CandidateProfile)
-    private candidateProfileRepository: Repository<CandidateProfile>, 
+    private candidateProfileRepository: Repository<CandidateProfile>,
     @InjectRepository(RecruiterProfile)
     private recruiterProfileRepository: Repository<RecruiterProfile>,
     private jwtService: JwtService,
-  ) {}
+    private emailService: EmailService,
+  ) { }
 
-  
+
 
   async updateUser(userId: number, updateUserDto: UpdateUserDto): Promise<User> {
     const {
       firstName,
       lastName,
-      phone, 
-      ...profileData 
+      phone,
+      ...profileData
     } = updateUserDto as any;
 
     const user = await this.userRepository.findOne({
@@ -98,7 +99,7 @@ export class AuthService {
   async isUserPremium(userId: number): Promise<boolean> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      select: ['isPremium'], 
+      select: ['isPremium'],
     });
     if (!user) {
       return false;
@@ -106,32 +107,32 @@ export class AuthService {
     return user.isPremium;
   }
 
-async getProfile(userId: number): Promise<any> {
+  async getProfile(userId: number): Promise<any> {
 
     let user = await this.userRepository.findOne({
       where: { id: userId },
       relations: [
-        'candidateProfile', 
-        'recruiterProfile', 
-        'candidateProfile.savedJobs', 
-        'applications',              
-        'applications.job'            
-      ], 
+        'candidateProfile',
+        'recruiterProfile',
+        'candidateProfile.savedJobs',
+        'applications',
+        'applications.job'
+      ],
     });
 
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    
+
     if (user.role === UserRole.CANDIDATE && !user.candidateProfile) {
-      
+
       const newProfile = this.candidateProfileRepository.create({ user, experience: [], education: [], savedJobs: [] });
       await this.candidateProfileRepository.save(newProfile);
-      user.candidateProfile = newProfile; 
+      user.candidateProfile = newProfile;
     } else if (user.role === UserRole.RECRUITER && !user.recruiterProfile) {
       const newProfile = this.recruiterProfileRepository.create({ user, companyName: user.companyName || 'N/A' });
       await this.recruiterProfileRepository.save(newProfile);
-      user.recruiterProfile = newProfile; 
+      user.recruiterProfile = newProfile;
     }
 
     const { password, ...safeUser } = user;
@@ -140,61 +141,61 @@ async getProfile(userId: number): Promise<any> {
 
 
   async updateProfileImage(user: User, imageType: 'profilePicture' | 'coverPhoto', filePath: string) {
-      if (!imageType) {
-        throw new BadRequestException('imageType (profilePicture or coverPhoto) is required.');
-      }
-       const finalPath = filePath.replace(/\\/g, '/').split('uploads/')[1];
-      if (!finalPath) {
-          throw new InternalServerErrorException('Could not determine file path after upload.');
-      }
-      try {
-        if (user.role === UserRole.CANDIDATE) {
-          const profile = await this.candidateProfileRepository.findOneBy({ user: { id: user.id } });
-          if (!profile) throw new NotFoundException('Candidate profile not found.');
-          await this.candidateProfileRepository.update(
-            { id: profile.id },
-            { [imageType]: finalPath }
-          );
-        } else if (user.role === UserRole.RECRUITER) {
-          const profile = await this.recruiterProfileRepository.findOneBy({ user: { id: user.id } });
-          if (!profile) throw new NotFoundException('Recruiter profile not found.');
-          await this.recruiterProfileRepository.update(
-            { id: profile.id },
-            { [imageType]: finalPath }
-          );
-        } else {
-          throw new NotFoundException('User profile type not found.');
-        }
-        return { message: 'Image uploaded successfully', filePath: finalPath };
-      } catch (error) {
-          console.error("Failed to update profile image path:", error);
-          throw new InternalServerErrorException("Could not update profile image.");
-      }
+    if (!imageType) {
+      throw new BadRequestException('imageType (profilePicture or coverPhoto) is required.');
     }
+    const finalPath = filePath.replace(/\\/g, '/').split('uploads/')[1];
+    if (!finalPath) {
+      throw new InternalServerErrorException('Could not determine file path after upload.');
+    }
+    try {
+      if (user.role === UserRole.CANDIDATE) {
+        const profile = await this.candidateProfileRepository.findOneBy({ user: { id: user.id } });
+        if (!profile) throw new NotFoundException('Candidate profile not found.');
+        await this.candidateProfileRepository.update(
+          { id: profile.id },
+          { [imageType]: finalPath }
+        );
+      } else if (user.role === UserRole.RECRUITER) {
+        const profile = await this.recruiterProfileRepository.findOneBy({ user: { id: user.id } });
+        if (!profile) throw new NotFoundException('Recruiter profile not found.');
+        await this.recruiterProfileRepository.update(
+          { id: profile.id },
+          { [imageType]: finalPath }
+        );
+      } else {
+        throw new NotFoundException('User profile type not found.');
+      }
+      return { message: 'Image uploaded successfully', filePath: finalPath };
+    } catch (error) {
+      console.error("Failed to update profile image path:", error);
+      throw new InternalServerErrorException("Could not update profile image.");
+    }
+  }
 
-async handleGoogleAuth(profile: { email: string; firstName: string; lastName: string; role: UserRole; action: 'login' | 'register' }): Promise<{ user: User; token: string }> {
+  async handleGoogleAuth(profile: { email: string; firstName: string; lastName: string; role: UserRole; action: 'login' | 'register' }): Promise<{ user: User; token: string }> {
     const { email, firstName, lastName, role, action } = profile;
 
     const existingUser = await this.userRepository.findOne({ where: { email } });
 
     if (action === 'login') {
-      
+
       if (!existingUser) {
         throw new BadRequestException('Account not found. Please register first.');
       }
-      
+
       const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
       const token = this.jwtService.sign(jwtPayload);
       return { user: existingUser, token };
-    } else { 
-      
+    } else {
+
       if (existingUser) {
         const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
         const token = this.jwtService.sign(jwtPayload);
         return { user: existingUser, token };
       }
 
-      
+
       const newUser = this.userRepository.create({
         email,
         firstName,
@@ -290,25 +291,24 @@ async handleGoogleAuth(profile: { email: string; firstName: string; lastName: st
       .createQueryBuilder('user')
       .where('LOWER(user.email) = LOWER(:email)', { email })
       .getOne();
+
     if (!user) throw new NotFoundException('User not found');
+
     const token = Math.floor(100000 + Math.random() * 900000).toString();
     const expires = new Date(Date.now() + 5 * 60 * 1000);
     user.resetPasswordToken = token;
     user.resetPasswordExpires = expires;
     await this.userRepository.save(user);
-    const transporter = nodemailer.createTransport({
-      service: 'Gmail',
-      auth: { user: process.env.GMAIL_USER, pass: process.env.GMAIL_PASS },
-    });
+
+    // Use the centralized EmailService with professional HTML template
     try {
-      await transporter.sendMail({
-        to: email,
-        subject: 'NexHire Password Reset OTP',
-        text: `Your OTP for password reset is: ${token}. It expires in 5 minutes.`,
-      });
+      await this.emailService.sendPasswordResetOTP(email, token);
+      console.log(`✅ Password reset OTP sent to ${email}`);
     } catch (error) {
+      console.error('❌ Failed to send password reset OTP:', error.message);
       throw new BadRequestException('Failed to send OTP. Please try again.');
     }
+
     return { message: 'OTP sent to your email' };
   }
 
@@ -343,9 +343,9 @@ async handleGoogleAuth(profile: { email: string; firstName: string; lastName: st
     if (user.sentMessages) await this.messageRepository.delete({ sender: { id: userId } });
     if (user.receivedMessages) await this.messageRepository.delete({ receiver: { id: userId } });
 
-    if(user.candidateProfile) await this.candidateProfileRepository.delete({ id: user.candidateProfile.id });
-    if(user.recruiterProfile) await this.recruiterProfileRepository.delete({ id: user.recruiterProfile.id });
-    
+    if (user.candidateProfile) await this.candidateProfileRepository.delete({ id: user.candidateProfile.id });
+    if (user.recruiterProfile) await this.recruiterProfileRepository.delete({ id: user.recruiterProfile.id });
+
     await this.userRepository.delete(userId);
     return { message: 'Account deleted successfully' };
   }

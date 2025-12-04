@@ -126,13 +126,15 @@ export class ScreeningService {
       }
     }
 
-    // Notify recruiter about top candidate (fire-and-forget to avoid blocking response)
+    // Notify recruiter about screening results (fire-and-forget to avoid blocking response)
     if (results.length > 0) {
       const topCandidate = results[0];
-      this.emailService.sendMail(
+      this.emailService.sendScreeningResults(
         job.recruiter.email,
-        `Screening Results for Job: ${job.title}`,
-        `Screening completed for "${job.title}".\n\nTop candidate scored ${topCandidate.score.toFixed(2)}%.\nMatched keywords: ${topCandidate.matchedKeywords.join(', ')}`,
+        job.title,
+        topCandidate.score,
+        topCandidate.matchedKeywords,
+        results.length
       ).catch(err => {
         console.error('Failed to send screening notification email:', err);
       });

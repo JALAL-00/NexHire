@@ -59,7 +59,13 @@ export class ApplicationsService {
     const savedApplication = await this.applicationRepository.save(application);
 
     // Send email notification asynchronously (fire-and-forget) to avoid blocking the response
-    this.notifyRecruiter(job.recruiter.email, job.title, candidate.email).catch(err => {
+    const candidateName = `${candidate.firstName} ${candidate.lastName}`;
+    this.emailService.sendNewApplicationNotification(
+      job.recruiter.email,
+      job.title,
+      candidateName,
+      candidate.email
+    ).catch(err => {
       console.error('Failed to send recruiter notification email:', err);
     });
 
@@ -116,10 +122,10 @@ export class ApplicationsService {
     const updatedApplication = await this.applicationRepository.save(application);
 
     // Send email notification asynchronously (fire-and-forget)
-    this.emailService.sendMail(
+    this.emailService.sendApplicationStatusUpdate(
       application.candidate.email,
-      `Application Status Update for ${application.job.title}`,
-      `Your application for "${application.job.title}" has been updated to "${status}".`,
+      application.job.title,
+      status
     ).catch(err => {
       console.error('Failed to send status update email:', err);
     });
