@@ -109,7 +109,7 @@ export const getJobRecommendations = async (limit: number = 2): Promise<any[]> =
 export const getRecruiterJobs = async (): Promise<any[]> => {
   try {
     const response = await apiClient.get('/recruiter/jobs/all');
-    return response.data || []; 
+    return response.data || [];
   } catch (error) {
     console.error('Failed to fetch jobs:', error);
     throw new Error('Could not fetch jobs. Please ensure you are logged in.');
@@ -145,8 +145,7 @@ export const updateApplicationStatus = async (
   try {
     const response = await apiClient.patch('/applications/status', { applicationId, status });
     return response.data;
-  } catch (error)
-  {
+  } catch (error) {
     console.error('Failed to update application status:', error);
     throw new Error('Could not update the application status.');
   }
@@ -156,7 +155,9 @@ export const updateApplicationStatus = async (
 
 export const screenJobResumes = async (jobId: number): Promise<ScreeningResult[]> => {
   try {
-    const response = await apiClient.post<ScreeningResult[]>('/screening/job', { jobId });
+    const response = await apiClient.post<ScreeningResult[]>('/screening/job', { jobId }, {
+      timeout: 120000, // 2 minutes timeout for resume screening
+    });
     return response.data;
   } catch (error) {
     if (axios.isAxiosError(error) && error.response) {

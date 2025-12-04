@@ -51,6 +51,10 @@ function MessagesContent() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
     const socket = io(API_URL, {
       extraHeaders: { Authorization: `Bearer ${token}` },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
     });
     socketRef.current = socket;
 

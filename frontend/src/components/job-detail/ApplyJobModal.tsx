@@ -68,7 +68,8 @@ export const ApplyJobModal = ({ jobId, jobTitle, onClose }: ApplyJobModalProps) 
       };
 
       await axios.post(`${API_URL}/candidate/apply-job`, applicationPayload, {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
+        timeout: 30000, // 30 second timeout
       });
 
       alert(`Successfully applied for: ${jobTitle}`)

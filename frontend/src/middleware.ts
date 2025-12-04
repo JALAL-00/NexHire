@@ -59,6 +59,16 @@ export function middleware(request: NextRequest) {
       url.searchParams.set('redirect_to', pathname);
       return NextResponse.redirect(url);
     }
+
+    // Validate token format
+    try {
+      jwtDecode<DecodedToken>(authToken);
+    } catch (error) {
+      // Invalid token, redirect to login
+      const response = NextResponse.redirect(new URL('/login', request.url));
+      response.cookies.delete('auth_token');
+      return response;
+    }
   }
 
   // Handle auth routes

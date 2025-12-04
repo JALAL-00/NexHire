@@ -22,7 +22,8 @@ import { MessageType } from './entities/message.entity';
       'https://nexhire.up.railway.app'
     ],
     credentials: true
-  }
+  },
+  transports: ['websocket', 'polling']
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()

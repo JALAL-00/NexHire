@@ -20,7 +20,7 @@ export class ScreeningService {
     @InjectRepository(User)
     private userRepository: Repository<User>,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   // Utility: Extract and tokenize specific job fields with weights
   private buildJobProfileText(job: Job): {
@@ -126,14 +126,16 @@ export class ScreeningService {
       }
     }
 
-    // Notify recruiter about top candidate
+    // Notify recruiter about top candidate (fire-and-forget to avoid blocking response)
     if (results.length > 0) {
       const topCandidate = results[0];
-      await this.emailService.sendMail(
+      this.emailService.sendMail(
         job.recruiter.email,
         `Screening Results for Job: ${job.title}`,
         `Screening completed for "${job.title}".\n\nTop candidate scored ${topCandidate.score.toFixed(2)}%.\nMatched keywords: ${topCandidate.matchedKeywords.join(', ')}`,
-      );
+      ).catch(err => {
+        console.error('Failed to send screening notification email:', err);
+      });
     }
 
     // Return results sorted by score

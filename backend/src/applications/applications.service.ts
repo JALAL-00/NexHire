@@ -24,15 +24,15 @@ export class ApplicationsService {
     @InjectRepository(Job)
     private jobRepository: Repository<Job>,
     private emailService: EmailService,
-  ) {}
+  ) { }
 
   async create(userId: number, createApplicationDto: CreateApplicationDto): Promise<Application> {
-    
+
     const { jobId, coverLetter, resume } = createApplicationDto;
 
     const candidate = await this.userRepository.findOne({ where: { id: userId } });
     const job = await this.jobRepository.findOne({ where: { id: jobId }, relations: ['recruiter'] });
-    
+
     if (!candidate || !job) {
       throw new NotFoundException('Candidate or job not found');
     }
@@ -51,17 +51,21 @@ export class ApplicationsService {
     const application = this.applicationRepository.create({
       job: job,
       candidate: candidate,
-      resume: resume, 
+      resume: resume,
       coverLetter: coverLetter,
       status: ApplicationStatus.PENDING,
     });
 
     const savedApplication = await this.applicationRepository.save(application);
-    await this.notifyRecruiter(job.recruiter.email, job.title, candidate.email);
+
+    // Send email notification asynchronously (fire-and-forget) to avoid blocking the response
+    this.notifyRecruiter(job.recruiter.email, job.title, candidate.email).catch(err => {
+      console.error('Failed to send recruiter notification email:', err);
+    });
 
     return savedApplication;
   }
-  
+
 
   async findByCandidate(userId: number): Promise<Application[]> {
     return this.applicationRepository.find({
@@ -111,11 +115,14 @@ export class ApplicationsService {
     application.status = status as ApplicationStatus;
     const updatedApplication = await this.applicationRepository.save(application);
 
-    await this.emailService.sendMail(
+    // Send email notification asynchronously (fire-and-forget)
+    this.emailService.sendMail(
       application.candidate.email,
       `Application Status Update for ${application.job.title}`,
       `Your application for "${application.job.title}" has been updated to "${status}".`,
-    );
+    ).catch(err => {
+      console.error('Failed to send status update email:', err);
+    });
 
     return updatedApplication;
   }
@@ -139,10 +146,10 @@ export class ApplicationsService {
       where: { job: { recruiter: { id: recruiterId } } },
       relations: [
         'candidate',
-        'candidate.candidateProfile', 
+        'candidate.candidateProfile',
       ],
       order: {
-        createdAt: 'DESC', 
+        createdAt: 'DESC',
       },
       take: limit, // Limit the number of results
     });
@@ -160,12 +167,12 @@ export class ApplicationsService {
         job: { recruiter: { id: recruiterId } },
       },
       relations: [
-        'job', 
+        'job',
         'candidate',
         'candidate.candidateProfile',
       ],
       order: {
-        createdAt: 'DESC', 
+        createdAt: 'DESC',
       },
     });
   }
