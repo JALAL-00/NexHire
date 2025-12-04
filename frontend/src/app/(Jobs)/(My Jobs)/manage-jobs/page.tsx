@@ -54,9 +54,6 @@ export default function ManageJobsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      // Log the response to verify the structure
-      console.log("Jobs response:", response.data);
-
       // Check if the response contains the jobs data and totalPages
       if (response.data && response.data.jobs) {
         const formattedJobs = response.data.jobs.map((job: any) => ({
