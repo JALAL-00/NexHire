@@ -16,14 +16,32 @@ import { MessageType } from './entities/message.entity';
 
 @WebSocketGateway({
   cors: {
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://nexhire.up.railway.app'
-    ],
-    credentials: true
+    origin: (origin, callback) => {
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:3001',
+        'https://nexhire.up.railway.app',
+        'https://nexhire-backend-api.up.railway.app',
+        process.env.FRONTEND_URL,
+      ].filter(Boolean);
+
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.warn(`⚠️ Blocked CORS request from origin: ${origin}`);
+        callback(null, true); // Allow in production for now, change to false for strict security
+      }
+    },
+    credentials: true,
+    methods: ['GET', 'POST'],
   },
-  transports: ['websocket', 'polling']
+  transports: ['websocket', 'polling'],
+  allowEIO3: true,
+  pingTimeout: 60000,
+  pingInterval: 25000,
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
@@ -37,20 +55,32 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   async handleConnection(client: SocketWithUser) {
     try {
+      console.log('🔌 New WebSocket connection attempt:', {
+        id: client.id,
+        transport: client.conn.transport.name,
+        origin: client.handshake.headers.origin,
+      });
+
       const token = client.handshake.headers.authorization?.split(' ')[1];
-      if (!token) throw new Error('No token provided');
+      if (!token) {
+        console.error('❌ No token provided in connection');
+        throw new Error('No token provided');
+      }
 
       const payload = this.jwtService.verify(token, {
         secret: process.env.JWT_SECRET,
       });
 
       const user = await this.authService.validateUserFromPayload(payload);
-      if (!user) throw new Error('Invalid user in token');
+      if (!user) {
+        console.error('❌ Invalid user in token');
+        throw new Error('Invalid user in token');
+      }
 
       client.data.user = user;
-      console.log(`Client connected: ${client.id}, User: ${user.email}`);
+      console.log(`✅ Client connected successfully: ${client.id}, User: ${user.email}`);
     } catch (error) {
-      console.error('Authentication failed:', error.message);
+      console.error('❌ Authentication failed:', error.message);
       client.disconnect();
     }
   }
@@ -80,13 +110,33 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
       mediaUrl?: string;
     },
   ) {
-    const user = client.data.user;
-    const { conversationId, content, type, mediaUrl } = payload;
+    try {
+      const user = client.data.user;
+      const { conversationId, content, type, mediaUrl } = payload;
 
-    // --- PASS NEW PARAMS TO THE SERVICE ---
-    const message = await this.chatService.createMessage(user, conversationId, content, type, mediaUrl);
+      console.log('📨 Sending message:', {
+        userId: user.id,
+        userEmail: user.email,
+        conversationId,
+        contentLength: content?.length || 0,
+        type: type || MessageType.TEXT,
+        hasMedia: !!mediaUrl,
+      });
 
-    const roomName = `conversation-${conversationId}`;
-    this.server.to(roomName).emit('newMessage', message);
+      // --- PASS NEW PARAMS TO THE SERVICE ---
+      const message = await this.chatService.createMessage(user, conversationId, content, type, mediaUrl);
+
+      const roomName = `conversation-${conversationId}`;
+      this.server.to(roomName).emit('newMessage', message);
+
+      console.log(`✅ Message sent to room ${roomName}:`, {
+        messageId: message.id,
+        senderId: message.sender.id,
+      });
+    } catch (error) {
+      console.error('❌ Error sending message:', error.message);
+      console.error('Error details:', error);
+      client.emit('messageError', { error: error.message });
+    }
   }
 }

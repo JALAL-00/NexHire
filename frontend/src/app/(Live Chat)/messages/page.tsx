@@ -47,15 +47,46 @@ function MessagesContent() {
       } catch (e) { console.error('Failed to parse auth token:', e); }
     }
 
-    // Connect the socket
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    // Connect the socket with proper production URL handling
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    console.log('🔌 Connecting to Socket.IO server:', API_URL);
+    console.log('🌍 Environment:', process.env.NODE_ENV);
+
     const socket = io(API_URL, {
       extraHeaders: { Authorization: `Bearer ${token}` },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 5,
+      reconnectionAttempts: 10,
       reconnectionDelay: 1000,
+      reconnectionDelayMax: 5000,
+      timeout: 20000,
+      autoConnect: true,
+      withCredentials: true,
     });
+
+    // Add connection event handlers for debugging
+    socket.on('connect', () => {
+      console.log('✅ Socket connected successfully:', socket.id);
+    });
+
+    socket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error.message);
+      console.error('Error details:', error);
+    });
+
+    socket.on('disconnect', (reason) => {
+      console.log('🔌 Socket disconnected:', reason);
+    });
+
+    socket.on('reconnect_attempt', (attemptNumber) => {
+      console.log(`🔄 Reconnection attempt ${attemptNumber}...`);
+    });
+
+    socket.on('reconnect', (attemptNumber) => {
+      console.log(`✅ Reconnected after ${attemptNumber} attempts`);
+    });
+
     socketRef.current = socket;
 
     // Define the message handler
