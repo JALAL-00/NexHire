@@ -87,6 +87,16 @@ function MessagesContent() {
       console.log(`✅ Reconnected after ${attemptNumber} attempts`);
     });
 
+    // Add authentication event listeners
+    socket.on('authenticated', (data) => {
+      console.log('✅ Authenticated successfully:', data);
+    });
+
+    socket.on('authError', (error) => {
+      console.error('❌ Authentication error from server:', error);
+      alert(`Authentication failed: ${error.message}. Please log in again.`);
+    });
+
     socketRef.current = socket;
 
     // Define the message handler

@@ -59,28 +59,59 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         id: client.id,
         transport: client.conn.transport.name,
         origin: client.handshake.headers.origin,
+        hasAuth: !!client.handshake.headers.authorization,
       });
 
-      const token = client.handshake.headers.authorization?.split(' ')[1];
+      const authHeader = client.handshake.headers.authorization;
+      const token = authHeader?.split(' ')[1];
+
       if (!token) {
         console.error('❌ No token provided in connection');
-        throw new Error('No token provided');
+        console.error('Auth header:', authHeader);
+        client.emit('authError', { message: 'No authentication token provided' });
+        client.disconnect();
+        return;
       }
 
-      const payload = this.jwtService.verify(token, {
-        secret: process.env.JWT_SECRET,
-      });
+      console.log('🔑 Token received, verifying...');
 
+      let payload;
+      try {
+        payload = this.jwtService.verify(token, {
+          secret: process.env.JWT_SECRET,
+        });
+        console.log('✅ JWT verified successfully:', { sub: payload.sub, email: payload.email });
+      } catch (jwtError) {
+        console.error('❌ JWT verification failed:', jwtError.message);
+        console.error('JWT Error details:', {
+          name: jwtError.name,
+          message: jwtError.message,
+          expiredAt: jwtError.expiredAt,
+        });
+        client.emit('authError', { message: 'Invalid or expired token' });
+        client.disconnect();
+        return;
+      }
+
+      console.log('👤 Validating user from payload...');
       const user = await this.authService.validateUserFromPayload(payload);
+
       if (!user) {
-        console.error('❌ Invalid user in token');
-        throw new Error('Invalid user in token');
+        console.error('❌ Invalid user in token - user not found in database');
+        console.error('Payload was:', payload);
+        client.emit('authError', { message: 'User not found' });
+        client.disconnect();
+        return;
       }
 
       client.data.user = user;
-      console.log(`✅ Client connected successfully: ${client.id}, User: ${user.email}`);
+      console.log(`✅ Client connected successfully: ${client.id}, User: ${user.email} (ID: ${user.id})`);
+      client.emit('authenticated', { userId: user.id, email: user.email });
+
     } catch (error) {
-      console.error('❌ Authentication failed:', error.message);
+      console.error('❌ Unexpected error in handleConnection:', error.message);
+      console.error('Error stack:', error.stack);
+      client.emit('authError', { message: 'Authentication failed' });
       client.disconnect();
     }
   }
