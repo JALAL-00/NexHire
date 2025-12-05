@@ -445,9 +445,38 @@ export class AuthService {
     if (user.sentMessages) await this.messageRepository.delete({ sender: { id: userId } });
     if (user.receivedMessages) await this.messageRepository.delete({ receiver: { id: userId } });
 
-    // 5. Clean up Profiles
-    if (user.candidateProfile) await this.candidateProfileRepository.delete({ id: user.candidateProfile.id });
-    if (user.recruiterProfile) await this.recruiterProfileRepository.delete({ id: user.recruiterProfile.id });
+    // 5. Clean up Profiles and their files
+    // Helper function to delete a file
+    const deleteFile = (filePath: string, fileType: string) => {
+      if (filePath) {
+        try {
+          const fs = require('fs');
+          const path = require('path');
+          const fullPath = path.join(process.cwd(), filePath);
+          if (fs.existsSync(fullPath)) {
+            fs.unlinkSync(fullPath);
+            console.log(`✅ Deleted ${fileType}: ${filePath}`);
+          }
+        } catch (error) {
+          console.error(`❌ Failed to delete ${fileType}: ${filePath}`, error.message);
+        }
+      }
+    };
+
+    // Delete candidate profile files
+    if (user.candidateProfile) {
+      deleteFile(user.candidateProfile.profilePicture, 'candidate profile picture');
+      deleteFile(user.candidateProfile.coverPhoto, 'candidate cover photo');
+      deleteFile(user.candidateProfile.resume, 'candidate resume');
+      await this.candidateProfileRepository.delete({ id: user.candidateProfile.id });
+    }
+
+    // Delete recruiter profile files
+    if (user.recruiterProfile) {
+      deleteFile(user.recruiterProfile.profilePicture, 'recruiter profile picture');
+      deleteFile(user.recruiterProfile.coverPhoto, 'recruiter cover photo');
+      await this.recruiterProfileRepository.delete({ id: user.recruiterProfile.id });
+    }
 
     // 6. Finally delete the user
     await this.userRepository.delete(userId);
