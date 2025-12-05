@@ -413,6 +413,17 @@ export class AuthService {
     if (user.jobs) await this.jobRepository.delete({ recruiter: { id: userId } });
 
     // 4. Clean up Recruiter Messages (different from Chat Messages)
+    // Also clean up old 'message' table if it exists (legacy table before rename)
+    try {
+      await this.userRepository.query(
+        'DELETE FROM message WHERE "senderId" = $1 OR "receiverId" = $1',
+        [userId]
+      );
+    } catch (error) {
+      // Table might not exist, ignore error
+      console.log('Legacy message table cleanup skipped (table may not exist)');
+    }
+
     if (user.sentMessages) await this.messageRepository.delete({ sender: { id: userId } });
     if (user.receivedMessages) await this.messageRepository.delete({ receiver: { id: userId } });
 
