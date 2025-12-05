@@ -17,6 +17,7 @@ import { Message as ChatMessage } from '../chat/entities/message.entity';
 import { Conversation } from '../chat/entities/conversation.entity';
 import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
 import { Post } from '../posts/entities/post.entity';
+import { ScreeningResult } from '../screening/entities/screening-result.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import * as bcrypt from 'bcrypt';
@@ -51,6 +52,8 @@ export class AuthService {
     private scrapedJobRepository: Repository<ScrapedJob>,
     @InjectRepository(Post)
     private postRepository: Repository<Post>,
+    @InjectRepository(ScreeningResult)
+    private screeningResultRepository: Repository<ScreeningResult>,
     @InjectRepository(CandidateProfile)
     private candidateProfileRepository: Repository<CandidateProfile>,
     @InjectRepository(RecruiterProfile)
@@ -382,6 +385,19 @@ export class AuthService {
     await this.postRepository.delete({ author: { id: userId } });
 
     // 3. Clean up Recruiter/Candidate specific data
+    // Delete screening results where user is the candidate
+    await this.screeningResultRepository.delete({ candidate: { id: userId } });
+
+    // If user is recruiter, we need to delete screening results for their jobs before deleting jobs
+    // (This is implicitly handled if we delete jobs, but explicit is safer)
+    if (user.jobs && user.jobs.length > 0) {
+      // Find all job IDs for this recruiter
+      const jobIds = user.jobs.map(job => job.id);
+      if (jobIds.length > 0) {
+        await this.screeningResultRepository.delete({ job: { id: In(jobIds) } });
+      }
+    }
+
     if (user.applications) await this.applicationRepository.delete({ candidate: { id: userId } });
     if (user.jobs) await this.jobRepository.delete({ recruiter: { id: userId } });
 
