@@ -1,39 +1,26 @@
 // src/common/email.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
 @Injectable()
 export class EmailService {
-  private transporter: nodemailer.Transporter;
+  private resend: Resend;
+  private fromEmail: string;
 
   constructor(private configService: ConfigService) {
-    const user = this.configService.get<string>('GMAIL_USER');
-    const pass = this.configService.get<string>('GMAIL_PASS');
+    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
 
-    if (!user || !pass) {
-      console.error('❌ GMAIL_USER or GMAIL_PASS is missing in environment variables!');
+    if (!resendApiKey) {
+      console.error('❌ RESEND_API_KEY is missing in environment variables!');
+      console.error('📧 Email service will not work. Please add RESEND_API_KEY to your environment.');
     } else {
-      console.log(`📧 Configuring email service for: ${user}`);
+      console.log('✅ Resend email service configured successfully');
     }
 
-    this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // use SSL
-      auth: {
-        user: this.configService.get<string>('GMAIL_USER'),
-        pass: this.configService.get<string>('GMAIL_PASS'),
-      },
-      tls: {
-        rejectUnauthorized: false
-      },
-      connectionTimeout: 10000, // 10 seconds
-      socketTimeout: 10000, // 10 seconds
-    });
-
-    // Removed verify() to prevent startup timeouts. 
-    // We will handle errors when sending emails.
+    this.resend = new Resend(resendApiKey);
+    // Use the verified sender email from Resend
+    this.fromEmail = this.configService.get<string>('FROM_EMAIL') || 'onboarding@resend.dev';
   }
 
   /**
@@ -51,26 +38,27 @@ export class EmailService {
     html?: string,
     retries: number = 3
   ): Promise<void> {
-    const mailOptions = {
-      from: `NexHire <${this.configService.get<string>('GMAIL_USER')}>`,
-      to,
-      subject,
-      text,
-      html: html || this.wrapInHtmlTemplate(text),
-    };
-
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const info = await this.transporter.sendMail(mailOptions);
-        console.log(`✅ Email sent successfully to ${to}: ${info.messageId}`);
+        const { data, error } = await this.resend.emails.send({
+          from: `NexHire <${this.fromEmail}>`,
+          to: [to],
+          subject,
+          html: html || this.wrapInHtmlTemplate(text),
+          text,
+        });
+
+        if (error) {
+          throw new Error(error.message);
+        }
+
+        console.log(`✅ Email sent successfully to ${to}: ${data?.id}`);
         return;
       } catch (error) {
         console.error(`❌ Email send attempt ${attempt}/${retries} failed:`, error.message);
 
         if (attempt === retries) {
-          // Log the error but don't crash the application
           console.error(`❌ Failed to send email to ${to} after ${retries} attempts`);
-          // In production, you might want to queue this for later retry
           throw new InternalServerErrorException('Failed to send email. Please try again later.');
         }
 
