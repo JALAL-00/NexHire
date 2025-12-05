@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
 
-@Entity()
+@Entity('recruiter_message')
 export class RecruiterMessage {
   @PrimaryGeneratedColumn()
   id: number;

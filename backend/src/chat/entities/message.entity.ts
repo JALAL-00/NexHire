@@ -10,7 +10,7 @@ export enum MessageType {
   FILE = 'file',
 }
 
-@Entity()
+@Entity('chat_message')
 export class Message {
   @PrimaryGeneratedColumn()
   id: number;
@@ -33,7 +33,7 @@ export class Message {
   @CreateDateColumn()
   createdAt: Date;
 
-  @ManyToOne(() => User, { eager: true }) 
+  @ManyToOne(() => User, { eager: true })
   sender: User;
 
   @ManyToOne(() => Conversation, (conversation) => conversation.messages)
