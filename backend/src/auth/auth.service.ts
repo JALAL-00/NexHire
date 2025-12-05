@@ -401,9 +401,27 @@ export class AuthService {
       }
     }
 
-    // Delete interviews before applications (foreign key constraint)
+    // Delete interviews and CV files before applications (foreign key constraint)
     if (user.applications) {
       const applicationIds = user.applications.map(app => app.id);
+
+      // Delete physical CV files from uploads folder
+      for (const app of user.applications) {
+        if (app.resume) {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join(process.cwd(), app.resume);
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              console.log(`✅ Deleted CV file: ${app.resume}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed to delete CV file: ${app.resume}`, error.message);
+          }
+        }
+      }
+
       if (applicationIds.length > 0) {
         await this.interviewRepository.delete({ application: { id: In(applicationIds) } });
       }
