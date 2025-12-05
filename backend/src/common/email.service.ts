@@ -18,18 +18,20 @@ export class EmailService {
     }
 
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: { user, pass },
-    });
-
-    // Verify transporter configuration on startup
-    this.transporter.verify((error, success) => {
-      if (error) {
-        console.error('❌ Email transporter configuration error:', error);
-      } else {
-        console.log('✅ Email service is ready to send emails');
+      host: 'smtp.gmail.com',
+      port: 587,
+      secure: false, // use STARTTLS
+      auth: {
+        user: this.configService.get<string>('GMAIL_USER'),
+        pass: this.configService.get<string>('GMAIL_PASS'),
+      },
+      tls: {
+        rejectUnauthorized: false // Helps with some container SSL issues
       }
     });
+
+    // Removed verify() to prevent startup timeouts. 
+    // We will handle errors when sending emails.
   }
 
   /**
