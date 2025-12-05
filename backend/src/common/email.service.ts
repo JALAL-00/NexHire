@@ -1,24 +1,39 @@
 // src/common/email.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import * as sgMail from '@sendgrid/mail';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class EmailService {
-  private fromEmail: string;
+  private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
-    const sendGridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
+    const user = this.configService.get<string>('GMAIL_USER');
+    const pass = this.configService.get<string>('GMAIL_PASS');
 
-    if (!sendGridApiKey) {
-      console.error('❌ SENDGRID_API_KEY is missing in environment variables!');
-      console.error('📧 Email service will not work. Please add SENDGRID_API_KEY to your environment.');
+    if (!user || !pass) {
+      console.error('❌ GMAIL_USER or GMAIL_PASS is missing in environment variables!');
     } else {
-      sgMail.setApiKey(sendGridApiKey);
-      console.log('✅ SendGrid email service configured successfully');
+      console.log(`📧 Configuring email service for: ${user}`);
     }
 
-    this.fromEmail = this.configService.get<string>('FROM_EMAIL') || 'noreply@yourdomain.com';
+    this.transporter = nodemailer.createTransport({
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // use SSL
+      auth: {
+        user: this.configService.get<string>('GMAIL_USER'),
+        pass: this.configService.get<string>('GMAIL_PASS'),
+      },
+      tls: {
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 10000, // 10 seconds
+      socketTimeout: 10000, // 10 seconds
+    });
+
+    // Removed verify() to prevent startup timeouts. 
+    // We will handle errors when sending emails.
   }
 
   /**
@@ -36,9 +51,9 @@ export class EmailService {
     html?: string,
     retries: number = 3
   ): Promise<void> {
-    const msg = {
+    const mailOptions = {
+      from: `NexHire <${this.configService.get<string>('GMAIL_USER')}>`,
       to,
-      from: `NexHire <${this.fromEmail}>`,
       subject,
       text,
       html: html || this.wrapInHtmlTemplate(text),
@@ -46,14 +61,16 @@ export class EmailService {
 
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        await sgMail.send(msg);
-        console.log(`✅ Email sent successfully to ${to}`);
+        const info = await this.transporter.sendMail(mailOptions);
+        console.log(`✅ Email sent successfully to ${to}: ${info.messageId}`);
         return;
       } catch (error) {
         console.error(`❌ Email send attempt ${attempt}/${retries} failed:`, error.message);
 
         if (attempt === retries) {
+          // Log the error but don't crash the application
           console.error(`❌ Failed to send email to ${to} after ${retries} attempts`);
+          // In production, you might want to queue this for later retry
           throw new InternalServerErrorException('Failed to send email. Please try again later.');
         }
 
