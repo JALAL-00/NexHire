@@ -8,7 +8,7 @@ import { CreateJobDto } from './dto/create-job.dto';
 import { UpdateJobDto } from './dto/update-job.dto';
 import { SearchCandidateDto } from './dto/search-candidate.dto';
 import { SendMessageDto } from './dto/send-message.dto';
-import { Message } from './entities/message.entity';
+import { RecruiterMessage } from './entities/message.entity';
 import { EmailService } from '../common/email.service';
 import { ApplicationsService } from '../applications/applications.service';
 import { ScreeningResult } from '../screening/entities/screening-result.entity';
@@ -26,8 +26,8 @@ export class RecruiterService {
     private jobRepository: Repository<Job>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
-    @InjectRepository(Message)
-    private messageRepository: Repository<Message>,
+    @InjectRepository(RecruiterMessage)
+    private messageRepository: Repository<RecruiterMessage>,
     @InjectRepository(CandidateProfile)
     private candidateProfileRepository: Repository<CandidateProfile>,
     @InjectRepository(ScreeningResult)
@@ -38,7 +38,7 @@ export class RecruiterService {
     private applicationsService: ApplicationsService,
     @InjectRepository(Application) private readonly appRepo: Repository<Application>,
     @InjectRepository(Interview) private readonly interviewRepo: Repository<Interview>,
-  ) {}
+  ) { }
 
   async checkJobPostingStatus(userId: number): Promise<{ canPost: boolean }> {
     const user = await this.userRepository.findOne({
@@ -165,7 +165,7 @@ export class RecruiterService {
     }
     return this.applicationsService.findByJob(jobId);
   }
-  
+
   async searchCandidates(searchCandidateDto: SearchCandidateDto): Promise<CandidateProfile[]> {
     const { title, skills, location } = searchCandidateDto;
     return this.candidateProfileRepository.find({
@@ -177,8 +177,8 @@ export class RecruiterService {
       relations: ['user'],
     });
   }
-  
-  async sendMessage(userId: number, sendMessageDto: SendMessageDto): Promise<Message> {
+
+  async sendMessage(userId: number, sendMessageDto: SendMessageDto): Promise<RecruiterMessage> {
     const { receiverId, content } = sendMessageDto;
     const sender = await this.userRepository.findOne({ where: { id: userId } });
     const receiver = await this.userRepository.findOne({ where: { id: receiverId, role: UserRole.CANDIDATE } });
@@ -207,7 +207,7 @@ export class RecruiterService {
     }
   }
 
-async getDashboardStats(recruiterId: number) {
+  async getDashboardStats(recruiterId: number) {
     // We run all count queries in parallel for efficiency
     const [totalJobs, totalApplicants, totalShortlisted, totalInterviews] = await Promise.all([
       // 1. Total Jobs: Use the correct repository name 'jobRepository'

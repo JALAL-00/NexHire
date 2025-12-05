@@ -12,7 +12,7 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { Job } from '../jobs/entities/job.entity';
 import { Application } from '../applications/entities/application.entity';
-import { Message } from '../recruiter/entities/message.entity';
+import { RecruiterMessage } from '../recruiter/entities/message.entity';
 import { Message as ChatMessage } from '../chat/entities/message.entity';
 import { Conversation } from '../chat/entities/conversation.entity';
 import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
@@ -42,8 +42,8 @@ export class AuthService {
     private jobRepository: Repository<Job>,
     @InjectRepository(Application)
     private applicationRepository: Repository<Application>,
-    @InjectRepository(Message)
-    private messageRepository: Repository<Message>,
+    @InjectRepository(RecruiterMessage)
+    private messageRepository: Repository<RecruiterMessage>,
     @InjectRepository(ChatMessage)
     private chatMessageRepository: Repository<ChatMessage>,
     @InjectRepository(Conversation)

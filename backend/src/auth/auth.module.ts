@@ -5,7 +5,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user.entity';
 import { Job } from '../jobs/entities/job.entity';
 import { Application } from '../applications/entities/application.entity';
-import { Message } from '../recruiter/entities/message.entity';
+import { RecruiterMessage } from '../recruiter/entities/message.entity';
 import { Message as ChatMessage } from '../chat/entities/message.entity';
 import { Conversation } from '../chat/entities/conversation.entity';
 import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
@@ -28,7 +28,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
       User,
       Job,
       Application,
-      Message,
+      RecruiterMessage,
       ChatMessage,
       Conversation,
       ScrapedJob,

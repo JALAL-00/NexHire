@@ -2,7 +2,7 @@ import { Column, Entity, PrimaryGeneratedColumn, OneToOne, OneToMany } from 'typ
 import { CandidateProfile } from '../../candidate/entities/candidate-profile.entity';
 import { Job } from '../../jobs/entities/job.entity';
 import { Application } from '../../applications/entities/application.entity';
-import { Message } from '../../recruiter/entities/message.entity';
+import { RecruiterMessage } from '../../recruiter/entities/message.entity';
 import { ScrapedJob } from '../../scraper/entities/scraped-job.entity';
 import { RecruiterProfile } from '../../recruiter/entities/recruiter-profile.entity';
 import { Post } from '../../posts/entities/post.entity';
@@ -63,11 +63,11 @@ export class User {
   @OneToMany(() => Application, (application) => application.candidate, { cascade: true })
   applications: Application[];
 
-  @OneToMany(() => Message, (message) => message.sender, { cascade: true })
-  sentMessages: Message[];
+  @OneToMany(() => RecruiterMessage, (message) => message.sender, { cascade: true })
+  sentMessages: RecruiterMessage[];
 
-  @OneToMany(() => Message, (message) => message.receiver, { cascade: true })
-  receivedMessages: Message[];
+  @OneToMany(() => RecruiterMessage, (message) => message.receiver, { cascade: true })
+  receivedMessages: RecruiterMessage[];
 
   @OneToMany(() => ScrapedJob, (scrapedJob) => scrapedJob.user)
   scrapedJobs: ScrapedJob[];

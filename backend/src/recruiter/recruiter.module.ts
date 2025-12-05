@@ -4,12 +4,12 @@ import { RecruiterController } from './recruiter.controller';
 import { RecruiterService } from './recruiter.service';
 import { Job } from '../jobs/entities/job.entity';
 import { User } from '../auth/entities/user.entity';
-import { Message } from './entities/message.entity';
+import { RecruiterMessage } from './entities/message.entity';
 import { EmailService } from '../common/email.service';
 import { ScreeningResult } from '../screening/entities/screening-result.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from './entities/recruiter-profile.entity';
-import { ApplicationsModule } from '../applications/applications.module'; 
+import { ApplicationsModule } from '../applications/applications.module';
 import { AuthModule } from '../auth/auth.module';
 import { Application } from 'src/applications/entities/application.entity';
 import { Interview } from 'src/interviews/entities/interview.entity';
@@ -19,7 +19,7 @@ import { Interview } from 'src/interviews/entities/interview.entity';
     TypeOrmModule.forFeature([
       Job,
       User,
-      Message,
+      RecruiterMessage,
       Application,
       Interview,
       ScreeningResult,
@@ -31,6 +31,6 @@ import { Interview } from 'src/interviews/entities/interview.entity';
   ],
   controllers: [RecruiterController],
   // Remove ApplicationsService from providers, as it's provided by the imported module
-  providers: [RecruiterService, EmailService], 
+  providers: [RecruiterService, EmailService],
 })
-export class RecruiterModule {}
+export class RecruiterModule { }
