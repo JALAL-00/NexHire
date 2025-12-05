@@ -11,6 +11,7 @@ import { Conversation } from '../chat/entities/conversation.entity';
 import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
 import { Post } from '../posts/entities/post.entity';
 import { ScreeningResult } from '../screening/entities/screening-result.entity';
+import { Interview } from '../interviews/entities/interview.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import { JwtModule } from '@nestjs/jwt';
@@ -34,6 +35,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
       ScrapedJob,
       Post,
       ScreeningResult,
+      Interview,
       CandidateProfile,
       RecruiterProfile
     ]),

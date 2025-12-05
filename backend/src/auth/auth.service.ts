@@ -18,6 +18,7 @@ import { Conversation } from '../chat/entities/conversation.entity';
 import { ScrapedJob } from '../scraper/entities/scraped-job.entity';
 import { Post } from '../posts/entities/post.entity';
 import { ScreeningResult } from '../screening/entities/screening-result.entity';
+import { Interview } from '../interviews/entities/interview.entity';
 import { CandidateProfile } from '../candidate/entities/candidate-profile.entity';
 import { RecruiterProfile } from '../recruiter/entities/recruiter-profile.entity';
 import * as bcrypt from 'bcrypt';
@@ -54,6 +55,8 @@ export class AuthService {
     private postRepository: Repository<Post>,
     @InjectRepository(ScreeningResult)
     private screeningResultRepository: Repository<ScreeningResult>,
+    @InjectRepository(Interview)
+    private interviewRepository: Repository<Interview>,
     @InjectRepository(CandidateProfile)
     private candidateProfileRepository: Repository<CandidateProfile>,
     @InjectRepository(RecruiterProfile)
@@ -398,7 +401,15 @@ export class AuthService {
       }
     }
 
-    if (user.applications) await this.applicationRepository.delete({ candidate: { id: userId } });
+    // Delete interviews before applications (foreign key constraint)
+    if (user.applications) {
+      const applicationIds = user.applications.map(app => app.id);
+      if (applicationIds.length > 0) {
+        await this.interviewRepository.delete({ application: { id: In(applicationIds) } });
+      }
+      await this.applicationRepository.delete({ candidate: { id: userId } });
+    }
+
     if (user.jobs) await this.jobRepository.delete({ recruiter: { id: userId } });
 
     // 4. Clean up Recruiter Messages (different from Chat Messages)
