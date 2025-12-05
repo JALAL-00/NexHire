@@ -1,26 +1,24 @@
 // src/common/email.service.ts
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Resend } from 'resend';
+import * as sgMail from '@sendgrid/mail';
 
 @Injectable()
 export class EmailService {
-  private resend: Resend;
   private fromEmail: string;
 
   constructor(private configService: ConfigService) {
-    const resendApiKey = this.configService.get<string>('RESEND_API_KEY');
+    const sendGridApiKey = this.configService.get<string>('SENDGRID_API_KEY');
 
-    if (!resendApiKey) {
-      console.error('❌ RESEND_API_KEY is missing in environment variables!');
-      console.error('📧 Email service will not work. Please add RESEND_API_KEY to your environment.');
+    if (!sendGridApiKey) {
+      console.error('❌ SENDGRID_API_KEY is missing in environment variables!');
+      console.error('📧 Email service will not work. Please add SENDGRID_API_KEY to your environment.');
     } else {
-      console.log('✅ Resend email service configured successfully');
+      sgMail.setApiKey(sendGridApiKey);
+      console.log('✅ SendGrid email service configured successfully');
     }
 
-    this.resend = new Resend(resendApiKey);
-    // Use the verified sender email from Resend
-    this.fromEmail = this.configService.get<string>('FROM_EMAIL') || 'onboarding@resend.dev';
+    this.fromEmail = this.configService.get<string>('FROM_EMAIL') || 'noreply@yourdomain.com';
   }
 
   /**
@@ -38,21 +36,18 @@ export class EmailService {
     html?: string,
     retries: number = 3
   ): Promise<void> {
+    const msg = {
+      to,
+      from: `NexHire <${this.fromEmail}>`,
+      subject,
+      text,
+      html: html || this.wrapInHtmlTemplate(text),
+    };
+
     for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        const { data, error } = await this.resend.emails.send({
-          from: `NexHire <${this.fromEmail}>`,
-          to: [to],
-          subject,
-          html: html || this.wrapInHtmlTemplate(text),
-          text,
-        });
-
-        if (error) {
-          throw new Error(error.message);
-        }
-
-        console.log(`✅ Email sent successfully to ${to}: ${data?.id}`);
+        await sgMail.send(msg);
+        console.log(`✅ Email sent successfully to ${to}`);
         return;
       } catch (error) {
         console.error(`❌ Email send attempt ${attempt}/${retries} failed:`, error.message);
