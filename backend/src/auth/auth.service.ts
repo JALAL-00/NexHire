@@ -353,7 +353,7 @@ export class AuthService {
   async deleteAccount(userId: number): Promise<{ message: string }> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['candidateProfile', 'recruiterProfile', 'jobs', 'applications', 'sentMessages', 'receivedMessages'],
+      relations: ['candidateProfile', 'recruiterProfile', 'jobs', 'applications', 'sentMessages', 'receivedMessages', 'posts'],
     });
 
     if (!user) throw new NotFoundException('User not found');
@@ -385,6 +385,26 @@ export class AuthService {
 
     // 2. Clean up Scraped Jobs & Posts
     await this.scrapedJobRepository.delete({ user: { id: userId } });
+
+    // Delete post media files before deleting posts
+    if (user.posts && user.posts.length > 0) {
+      for (const post of user.posts) {
+        if (post.mediaUrl) {
+          try {
+            const fs = require('fs');
+            const path = require('path');
+            const filePath = path.join(process.cwd(), post.mediaUrl);
+            if (fs.existsSync(filePath)) {
+              fs.unlinkSync(filePath);
+              console.log(`✅ Deleted post media: ${post.mediaUrl}`);
+            }
+          } catch (error) {
+            console.error(`❌ Failed to delete post media: ${post.mediaUrl}`, error.message);
+          }
+        }
+      }
+    }
+
     await this.postRepository.delete({ author: { id: userId } });
 
     // 3. Clean up Recruiter/Candidate specific data
