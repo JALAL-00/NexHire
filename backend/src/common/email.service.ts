@@ -8,14 +8,18 @@ export class EmailService {
   private transporter: nodemailer.Transporter;
 
   constructor(private configService: ConfigService) {
+    const user = this.configService.get<string>('GMAIL_USER');
+    const pass = this.configService.get<string>('GMAIL_PASS');
+
+    if (!user || !pass) {
+      console.error('❌ GMAIL_USER or GMAIL_PASS is missing in environment variables!');
+    } else {
+      console.log(`📧 Configuring email service for: ${user}`);
+    }
+
     this.transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // use STARTTLS
-      auth: {
-        user: this.configService.get<string>('GMAIL_USER'),
-        pass: this.configService.get<string>('GMAIL_PASS'),
-      },
+      service: 'gmail',
+      auth: { user, pass },
     });
 
     // Verify transporter configuration on startup
