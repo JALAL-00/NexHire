@@ -19,15 +19,17 @@ export class EmailService {
 
     this.transporter = nodemailer.createTransport({
       host: 'smtp.gmail.com',
-      port: 587,
-      secure: false, // use STARTTLS
+      port: 465,
+      secure: true, // use SSL
       auth: {
         user: this.configService.get<string>('GMAIL_USER'),
         pass: this.configService.get<string>('GMAIL_PASS'),
       },
       tls: {
-        rejectUnauthorized: false // Helps with some container SSL issues
-      }
+        rejectUnauthorized: false
+      },
+      connectionTimeout: 10000, // 10 seconds
+      socketTimeout: 10000, // 10 seconds
     });
 
     // Removed verify() to prevent startup timeouts. 
