@@ -22,7 +22,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
   const validateEmail = (email: string) => {
     const regex = /^[a-z][a-z0-9._%+-]*@gmail\.com$/;

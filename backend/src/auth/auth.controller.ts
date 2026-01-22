@@ -18,7 +18,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
 import * as fs from 'fs';
-import { Response } from 'express'; 
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -30,7 +30,7 @@ import { UserRole } from './entities/user.entity';
 import { BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { RequestWithUser } from '../common/types/request-with-user.interface';
-import { UpdateUserDto } from './dto/update-user.dto'; 
+import { UpdateUserDto } from './dto/update-user.dto';
 import { Patch } from '@nestjs/common';
 
 // Helper function to create folders if they don't exist
@@ -42,19 +42,20 @@ const createFolderIfNotExists = (folderPath: string) => {
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   // --- Google OAuth ---
   @Get('google')
   @UseGuards(AuthGuard('google'))
-  async googleAuth(@Req() req) {}
+  async googleAuth(@Req() req) { }
 
   @Get('google/callback')
   @UseGuards(AuthGuard('google'))
   async googleAuthRedirect(@Req() req: RequestWithUser, @Res() res: Response) {
     const { token } = await this.authService.handleGoogleAuth(req.user as any);
 
-    const redirectUrl = `http://localhost:3001/auth/callback?token=${token}`;
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+    const redirectUrl = `${frontendUrl}/auth/callback?token=${token}`;
     res.redirect(redirectUrl);
   }
 

@@ -193,6 +193,7 @@ export class AuthService {
 
   async handleGoogleAuth(profile: { email: string; firstName: string; lastName: string; role: UserRole; action: 'login' | 'register' }): Promise<{ user: User; token: string }> {
     const { email, firstName, lastName, role, action } = profile;
+    console.log('🔐 handleGoogleAuth called with:', { email, role, action });
 
     const existingUser = await this.userRepository.findOne({ where: { email } });
 
@@ -202,18 +203,21 @@ export class AuthService {
         throw new BadRequestException('Account not found. Please register first.');
       }
 
+      console.log('✅ Logging in existing user with role:', existingUser.role);
       const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
       const token = this.jwtService.sign(jwtPayload);
       return { user: existingUser, token };
     } else {
 
       if (existingUser) {
+        console.log('⚠️  User already exists with role:', existingUser.role, '(ignoring selected role:', role, ')');
         const jwtPayload = { email: existingUser.email, sub: existingUser.id, role: existingUser.role };
         const token = this.jwtService.sign(jwtPayload);
         return { user: existingUser, token };
       }
 
 
+      console.log('🆕 Creating new user with role:', role);
       const newUser = this.userRepository.create({
         email,
         firstName,
@@ -231,6 +235,7 @@ export class AuthService {
         await this.recruiterProfileRepository.save(recruiterProfile);
       }
 
+      console.log('✅ New user created successfully with role:', savedUser.role);
       const jwtPayload = { email: savedUser.email, sub: savedUser.id, role: savedUser.role };
       const token = this.jwtService.sign(jwtPayload);
       return { user: savedUser, token };
