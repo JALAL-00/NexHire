@@ -38,9 +38,9 @@ import { InterviewsModule } from './interviews/interviews.module';
             type: 'postgres',
             url: dbUrl,
             autoLoadEntities: true,
-            synchronize: true, // Note: Set to false in production usually, but keeping true for your dev/demo
+            synchronize: true, 
             ssl: {
-              rejectUnauthorized: false, // Required for Railway/Heroku secure connections
+              rejectUnauthorized: false, 
             },
           };
         }

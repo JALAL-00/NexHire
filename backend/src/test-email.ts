@@ -20,7 +20,7 @@ async function testEmail() {
   try {
     await transporter.sendMail({
       from: process.env.GMAIL_USER,
-      to: 'jalaluddin0046356@gmail.com', // Replace with your email (e.g., jalal@gmail.com)
+      to: 'jalaluddin0046356@gmail.com', 
       subject: 'Test Email from Job Portal',
       text: 'This is a test email to verify Nodemailer configuration.',
     });

@@ -34,7 +34,6 @@ export class RecruiterProfile {
   @Column({ nullable: true })
   coverPhoto: string;
 
-  // --- ✅ NEWLY ADDED FIELDS ---
   @Column({ type: 'text', nullable: true })
   about: string;
 

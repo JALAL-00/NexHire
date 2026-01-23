@@ -43,20 +43,17 @@ export class RecruiterService {
   async checkJobPostingStatus(userId: number): Promise<{ canPost: boolean }> {
     const user = await this.userRepository.findOne({
       where: { id: userId },
-      relations: ['postedJobs'], // We need the count of existing jobs
+      relations: ['postedJobs'], 
     });
 
     if (!user) {
-      // This case is unlikely for a logged-in user but good for safety
       throw new NotFoundException('User not found.');
     }
 
-    // A premium user can always post
     if (user.isPremium) {
       return { canPost: true };
     }
 
-    // A non-premium user can only post if they have 0 jobs
     return { canPost: user.postedJobs.length < 1 };
   }
 
@@ -89,8 +86,6 @@ export class RecruiterService {
     return this.recruiterProfileRepository.save(profile);
   }
 
-  // --- THIS IS THE FIX (Part 1) ---
-  // The paginated list now also formats the job status, ensuring consistency.
   async listJobsPaginated(userId: number, page = 1, limit = 10): Promise<{ jobs: Job[]; totalCount: number; totalPages: number }> {
     const [jobs, totalCount] = await this.jobRepository.findAndCount({
       where: { recruiter: { id: userId } },
@@ -102,12 +97,12 @@ export class RecruiterService {
 
     const formattedJobs = jobs.map(job => ({
       ...job,
-      status: job.status || 'Active', // Default null status to 'Active'
+      status: job.status || 'Active', 
       applicationCount: job.applications?.length || 0,
     }));
 
     return {
-      jobs: formattedJobs as Job[], // Cast to Job[] to satisfy the return type
+      jobs: formattedJobs as Job[], 
       totalCount,
       totalPages: Math.ceil(totalCount / limit),
     };
@@ -142,8 +137,7 @@ export class RecruiterService {
     return { message: 'Job deleted successfully' };
   }
 
-  // --- THIS IS THE FIX (Part 2) ---
-  // The simple job list (for the profile) now formats the status as well.
+
   async listJobs(userId: number): Promise<Job[]> {
     const jobs = await this.jobRepository.find({
       where: { recruiter: { id: userId } },
@@ -151,7 +145,7 @@ export class RecruiterService {
       order: { id: 'DESC' },
     });
 
-    // Add the same formatting logic here to ensure 'status' is never null.
+
     return jobs.map(job => ({
       ...job,
       status: job.status || 'Active',
@@ -208,24 +202,24 @@ export class RecruiterService {
   }
 
   async getDashboardStats(recruiterId: number) {
-    // We run all count queries in parallel for efficiency
+
     const [totalJobs, totalApplicants, totalShortlisted, totalInterviews] = await Promise.all([
-      // 1. Total Jobs: Use the correct repository name 'jobRepository'
       this.jobRepository.count({
         where: { recruiter: { id: recruiterId } },
       }),
-      // 2. Total applications: 'appRepo' is correct
+
       this.appRepo.count({
         where: { job: { recruiter: { id: recruiterId } } },
       }),
-      // 3. Total "accepted" applications: 'appRepo' is correct
+
       this.appRepo.count({
         where: {
           status: ApplicationStatus.ACCEPTED,
           job: { recruiter: { id: recruiterId } },
         },
       }),
-      // 4. Total interviews: 'interviewRepo' is correct
+
+
       this.interviewRepo.count({
         where: { application: { job: { recruiter: { id: recruiterId } } } },
       }),
